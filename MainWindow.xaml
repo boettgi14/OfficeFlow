@@ -1,12 +1,200 @@
-﻿<Window x:Class="OfficeFlow.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:OfficeFlow"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+﻿<Window
+    x:Class="OfficeFlow.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:OfficeFlow"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="OfficeFlow"
+    MinWidth="800"
+    MinHeight="450"
+    mc:Ignorable="d">
 
+    <!--  Layout  -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <!--  Für Menüleiste  -->
+            <RowDefinition Height="Auto" />
+            <!--  Für Wochenkalender und Aufgabenliste  -->
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <!--  Für Wochenkalender  -->
+            <ColumnDefinition Width="3*" />
+            <!--  Für Aufgabenliste  -->
+            <ColumnDefinition Width="1*" />
+        </Grid.ColumnDefinitions>
+
+        <!--  Menüleiste  -->
+        <Menu Grid.Row="0" Grid.ColumnSpan="2">
+            <MenuItem Header="_Menü">
+                <MenuItem Header="_Einstellungen" />
+                <MenuItem Header="Benutzerverwaltung" IsEnabled="False" />
+                <Separator />
+                <MenuItem Click="LogOut_Click" Header="_Ausloggen" />
+                <MenuItem Click="EndProgram_Click" Header="_OfficeFlow beenden" />
+            </MenuItem>
+            <MenuItem Header="_Zeitmanagement">
+                <MenuItem Header="_TODO" />
+            </MenuItem>
+            <MenuItem Header="_Termine">
+                <MenuItem Header="_Hinzufügen" />
+                <MenuItem Header="_Bearbeiten" IsEnabled="False" />
+                <MenuItem Header="_Löschen" IsEnabled="False" />
+            </MenuItem>
+            <MenuItem Header="_Aufgaben">
+                <MenuItem Header="_Hinzufügen" />
+                <MenuItem Header="_Bearbeiten" IsEnabled="False" />
+                <MenuItem Header="_Löschen" IsEnabled="False" />
+            </MenuItem>
+            <MenuItem Header="_Hilfe">
+                <MenuItem Header="_Kurzanleitung" />
+                <MenuItem Click="OpenGitHub_Click" Header="_GitHub" />
+                <Separator />
+                <MenuItem Header="_Über OfficeFlow..." />
+            </MenuItem>
+        </Menu>
+
+        <!--  Wochenkalender  -->
+        <Grid
+            Grid.Row="1"
+            Grid.Column="0"
+            Margin="10,10,10,10">
+            <Grid.RowDefinitions>
+                <!--  Für Wochentage  -->
+                <RowDefinition Height="Auto" />
+                <!--  Für Kalenderinhalt  -->
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--  Wochentage  -->
+            <UniformGrid
+                Grid.Row="0"
+                Columns="7"
+                Rows="1">
+                <TextBlock
+                    FontWeight="Bold"
+                    Text="Montag"
+                    TextAlignment="Center" />
+                <TextBlock
+                    FontWeight="Bold"
+                    Text="Dienstag"
+                    TextAlignment="Center" />
+                <TextBlock
+                    FontWeight="Bold"
+                    Text="Mittwoch"
+                    TextAlignment="Center" />
+                <TextBlock
+                    FontWeight="Bold"
+                    Text="Donnerstag"
+                    TextAlignment="Center" />
+                <TextBlock
+                    FontWeight="Bold"
+                    Text="Freitag"
+                    TextAlignment="Center" />
+                <TextBlock
+                    FontWeight="Bold"
+                    Text="Samstag"
+                    TextAlignment="Center" />
+                <TextBlock
+                    FontWeight="Bold"
+                    Text="Sonntag"
+                    TextAlignment="Center" />
+            </UniformGrid>
+
+            <!--  Kalenderinhalt  -->
+            <UniformGrid
+                Grid.Row="1"
+                Columns="7"
+                Rows="1">
+                <Border
+                    Padding="5"
+                    BorderBrush="Gray"
+                    BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Termin..." />
+                    </StackPanel>
+                </Border>
+                <Border
+                    Padding="5"
+                    BorderBrush="Gray"
+                    BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Termin..." />
+                    </StackPanel>
+                </Border>
+                <Border
+                    Padding="5"
+                    BorderBrush="Gray"
+                    BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Termin..." />
+                    </StackPanel>
+                </Border>
+                <Border
+                    Padding="5"
+                    BorderBrush="Gray"
+                    BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Termin..." />
+                    </StackPanel>
+                </Border>
+                <Border
+                    Padding="5"
+                    BorderBrush="Gray"
+                    BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Termin..." />
+                    </StackPanel>
+                </Border>
+                <Border
+                    Padding="5"
+                    BorderBrush="Gray"
+                    BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Termin..." />
+                    </StackPanel>
+                </Border>
+                <Border
+                    Padding="5"
+                    BorderBrush="Gray"
+                    BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Termin..." />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+        </Grid>
+
+        <!--  Aufgabenliste  -->
+        <Grid
+            Grid.Row="1"
+            Grid.Column="1"
+            Margin="10,10,10,10">
+            <Grid.RowDefinitions>
+                <!--  Für Titel  -->
+                <RowDefinition Height="Auto" />
+                <!--  Für Listeninhalt  -->
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--  Titel  -->
+            <TextBlock
+                Grid.Row="0"
+                FontWeight="Bold"
+                Text="Aufgaben"
+                TextAlignment="Center" />
+
+            <!--  Listeninhalt  -->
+            <Border
+                Grid.Row="1"
+                Padding="5"
+                BorderBrush="Gray"
+                BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Aufgabe..." />
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </Window>
