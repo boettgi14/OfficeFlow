@@ -17,9 +17,24 @@ namespace OfficeFlow
     /// </summary>
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        public MainWindow(User user)
         {
-            InitializeComponent();
+            if (user.AdminStatus)
+            {
+                // Benutzer ist Admin
+                InitializeComponent();
+                // Setzen der Adminfunktionen
+                UserManagement.IsEnabled = true;
+                AppointmentChange.IsEnabled = true;
+                AppointmentDelete.IsEnabled = true;
+                TaskChange.IsEnabled = true;
+                TaskDelete.IsEnabled = true;
+            }
+            else
+            {
+                // Benutzer ist User
+                InitializeComponent();
+            }
         }
 
         private void EndProgram_Click(object sender, RoutedEventArgs e)
@@ -44,6 +59,22 @@ namespace OfficeFlow
                 FileName = "https://github.com/boettgi14/OfficeFlow",
                 UseShellExecute = true
             });
+        }
+
+        private void OpenUserManagement_Click(object sender, RoutedEventArgs e)
+        {
+            // Erstellen des UserManagementWindows
+            UserManagementWindow userManagementWindow = new UserManagementWindow();
+            userManagementWindow.Owner = this; // Besitzer auf MainWindow setzen
+            userManagementWindow.ShowDialog();
+        }
+
+        private void OpenAbout_Click(object sender, RoutedEventArgs e)
+        {
+            // Erstellen des AboutWindows
+            AboutWindow aboutWindow = new AboutWindow();
+            aboutWindow.Owner = this; // Besitzer auf MainWindow setzen
+            aboutWindow.ShowDialog();
         }
     }
 }

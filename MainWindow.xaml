@@ -8,6 +8,7 @@
     Title="OfficeFlow"
     MinWidth="800"
     MinHeight="450"
+    WindowState="Maximized"
     mc:Ignorable="d">
 
     <!--  Layout  -->
@@ -26,10 +27,14 @@
         </Grid.ColumnDefinitions>
 
         <!--  Menüleiste  -->
-        <Menu Grid.Row="0" Grid.ColumnSpan="2">
+        <Menu Grid.ColumnSpan="2">
             <MenuItem Header="_Menü">
                 <MenuItem Header="_Einstellungen" />
-                <MenuItem Header="Benutzerverwaltung" IsEnabled="False" />
+                <MenuItem
+                    Name="UserManagement"
+                    Click="OpenUserManagement_Click"
+                    Header="Nutzerverwaltung"
+                    IsEnabled="False" />
                 <Separator />
                 <MenuItem Click="LogOut_Click" Header="_Ausloggen" />
                 <MenuItem Click="EndProgram_Click" Header="_OfficeFlow beenden" />
@@ -39,27 +44,36 @@
             </MenuItem>
             <MenuItem Header="_Termine">
                 <MenuItem Header="_Hinzufügen" />
-                <MenuItem Header="_Bearbeiten" IsEnabled="False" />
-                <MenuItem Header="_Löschen" IsEnabled="False" />
+                <MenuItem
+                    Name="AppointmentChange"
+                    Header="_Bearbeiten"
+                    IsEnabled="False" />
+                <MenuItem
+                    Name="AppointmentDelete"
+                    Header="_Löschen"
+                    IsEnabled="False" />
             </MenuItem>
             <MenuItem Header="_Aufgaben">
                 <MenuItem Header="_Hinzufügen" />
-                <MenuItem Header="_Bearbeiten" IsEnabled="False" />
-                <MenuItem Header="_Löschen" IsEnabled="False" />
+                <MenuItem
+                    Name="TaskChange"
+                    Header="_Bearbeiten"
+                    IsEnabled="False" />
+                <MenuItem
+                    Name="TaskDelete"
+                    Header="_Löschen"
+                    IsEnabled="False" />
             </MenuItem>
             <MenuItem Header="_Hilfe">
                 <MenuItem Header="_Kurzanleitung" />
                 <MenuItem Click="OpenGitHub_Click" Header="_GitHub" />
                 <Separator />
-                <MenuItem Header="_Über OfficeFlow..." />
+                <MenuItem Click="OpenAbout_Click" Header="_Über OfficeFlow..." />
             </MenuItem>
         </Menu>
 
-        <!--  Wochenkalender  -->
-        <Grid
-            Grid.Row="1"
-            Grid.Column="0"
-            Margin="10,10,10,10">
+        <!--  Kalender  -->
+        <Grid Grid.Row="1" Margin="10">
             <Grid.RowDefinitions>
                 <!--  Für Wochentage  -->
                 <RowDefinition Height="Auto" />
@@ -68,10 +82,7 @@
             </Grid.RowDefinitions>
 
             <!--  Wochentage  -->
-            <UniformGrid
-                Grid.Row="0"
-                Columns="7"
-                Rows="1">
+            <UniformGrid Columns="7" Rows="1">
                 <TextBlock
                     FontWeight="Bold"
                     Text="Montag"
@@ -170,7 +181,7 @@
         <Grid
             Grid.Row="1"
             Grid.Column="1"
-            Margin="10,10,10,10">
+            Margin="10">
             <Grid.RowDefinitions>
                 <!--  Für Titel  -->
                 <RowDefinition Height="Auto" />
@@ -180,7 +191,6 @@
 
             <!--  Titel  -->
             <TextBlock
-                Grid.Row="0"
                 FontWeight="Bold"
                 Text="Aufgaben"
                 TextAlignment="Center" />

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -26,8 +28,35 @@ namespace OfficeFlow
 
         private void Login_Click(object sender, RoutedEventArgs e)
         {
+            string username = UsernameTextBox.Text;
+            string password = PasswordBox.Password;
+
+            DataBaseHelper.InitializeDatabase(); // Sicherstellen, dass die Datenbank initialisiert ist
+
+            if (DataBaseHelper.VerifyLogin(username, password))
+            {
+                // Login erfolgreich
+                User user = setUser(username, password);
+                OpenMainWindow(user);
+            }
+            else
+            {
+                // Login fehlgeschlagen
+                MessageBox.Show("Ungültiger Benutzername oder Passwort.", "Login Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private User setUser(string username, string password)
+        {
+            // Benutzer aus der Datenbank abrufen
+            User user = DataBaseHelper.GetUser(username);
+            return user;
+        }
+
+        private void OpenMainWindow(User user)
+        {
             // Erstellen des MainWindows
-            MainWindow mainWindow = new MainWindow();
+            MainWindow mainWindow = new MainWindow(user);
             mainWindow.Show();
             // Schließen des LoginWindows
             this.Close();
