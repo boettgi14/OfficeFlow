@@ -25,13 +25,17 @@ namespace OfficeFlow
 
         public static Boolean VerifyMD5(string password, String hashedPassword)
         {
+            // Hash des eingegebenen Passworts berechnen
             string comparableHash = HashMD5(password);
+
             if (comparableHash == hashedPassword)
             {
+                // Passwort stimmt überein
                 return true;
             }
             else
             {
+                // Passwort stimmt nicht überein
                 return false;
             }
         }

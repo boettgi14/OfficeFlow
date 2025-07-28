@@ -1,7 +1,11 @@
 ﻿using Microsoft.Data.Sqlite;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,60 +27,93 @@ namespace OfficeFlow
         public UserManagementWindow()
         {
             InitializeComponent();
-            updateUsers();
+            /// Anzeigen der Nutzerliste
+            UpdateUsersListBox();
         }
 
-        private void updateUsers()
+        public void UpdateUsersListBox()
         {
-            // Datenbankverbindung öffnen
-            using var connection = new SqliteConnection("Data Source=users.db");
-            connection.Open();
+            // Leeren der ListBox
+            UsersListBox.Items.Clear();
 
-            // Select Befehl vorbereiten
-            var command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM users";
-
-            // Select Befehl ausführen und Ergebnis lesen
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
+            List<User> users = UserDatabaseHelper.GetAllUsers();
+            foreach (User user in users)
             {
-                int id = reader.GetInt32(0);
-                string userName = reader.GetString(1);
-                string passwordHash = reader.GetString(2);
-                bool isAdmin = reader.GetBoolean(3);
-
                 // Setzen der ListBox Items
-                int index = ListBox.Items.Add(id + " " + userName);
+                int index = UsersListBox.Items.Add(user.Id + " " + user.Username);
 
                 // Hinzufügen des Admin Status
-                if (isAdmin)
+                if (user.AdminStatus)
                 {
-                    ListBox.Items[index] += " (Admin)";
+                    UsersListBox.Items[index] += " (Admin)";
                 }
             }
-
-            // Schließen der Verbindung
-            connection.Close();
         }
 
-        private void Abort_Click(object sender, RoutedEventArgs e)
+        private void SetButtonStatus()
+        {
+            if (UsersListBox.SelectedItem != null)
+            {
+                // Nuter ausgewählt
+                // Aktivieren der Buttons
+                EditUserButton.IsEnabled = true;
+                DeleteUserButton.IsEnabled = true;
+            }
+            else
+            {
+                // Kein Nutzer ausgewählt
+                // Deaktivieren der Buttons
+                EditUserButton.IsEnabled = false;
+                DeleteUserButton.IsEnabled = false;
+            }
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             // Schließen des UserManagementWindows
             this.Close();
         }
 
-        private void Ok_Click(object sender, RoutedEventArgs e)
+        private void AddUserButton_Click(object sender, RoutedEventArgs e)
         {
-            // Schließen des UserManagementWindows
-            this.Close();
-        }
-
-        private void AddUser_Click(object sender, RoutedEventArgs e)
-        {
-            // Erstellen des AddUserWindow
+            // Erstellen des AddUserWindows
             AddUserWindow addUserWindow = new AddUserWindow();
             addUserWindow.Owner = this; // Besitzer auf UserManagementWindow setzen
             addUserWindow.ShowDialog();
+
+            // Updaten der Nutzerliste nach Schließen des AddUserWindows
+            UpdateUsersListBox();
+        }
+
+        private void UsersListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Überprüfen, ob ein Nutzer ausgewählt wurde
+            SetButtonStatus();
+        }
+
+        private void EditUserButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Bearbeiten des ausgewählten Nutzers
+            string username = UsersListBox.SelectedItem.ToString().Split(" ")[1];
+            User user = UserDatabaseHelper.GetUser(username);
+
+            // Erstellen des EdiUserWindows
+            EditUserWindow editUserWindow = new EditUserWindow(user);
+            editUserWindow.Owner = this; // Besitzer auf UserManagementWindow setzen
+            editUserWindow.ShowDialog();
+
+            // Updaten der Nutzerliste nach Schließen des EditUserWindows
+            UpdateUsersListBox();
+        }
+
+        private void DeleteUserButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Löschen des ausgewählten Nutzers
+            string username = UsersListBox.SelectedItem.ToString().Split(" ")[1];
+            UserDatabaseHelper.DeleteUser(username);
+
+            // Updaten der Nutzerliste nach dem Löschen
+            UpdateUsersListBox();
         }
     }
 }

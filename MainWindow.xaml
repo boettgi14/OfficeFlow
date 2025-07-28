@@ -29,15 +29,24 @@
         <!--  Menüleiste  -->
         <Menu Grid.ColumnSpan="2">
             <MenuItem Header="_Menü">
-                <MenuItem Header="_Einstellungen" />
                 <MenuItem
-                    Name="UserManagement"
-                    Click="OpenUserManagement_Click"
+                    Name="SettingsMenuItem"
+                    Click="SettingsMenuItem_Click"
+                    Header="_Einstellungen" />
+                <MenuItem
+                    Name="UserManagementMenuItem"
+                    Click="UserManagementMenuItem_Click"
                     Header="Nutzerverwaltung"
                     IsEnabled="False" />
                 <Separator />
-                <MenuItem Click="LogOut_Click" Header="_Ausloggen" />
-                <MenuItem Click="EndProgram_Click" Header="_OfficeFlow beenden" />
+                <MenuItem
+                    Name="LogOutMenuItem"
+                    Click="LogOutMenuItem_Click"
+                    Header="_Ausloggen" />
+                <MenuItem
+                    Name="EndProgramMenuItem"
+                    Click="EndProgramMenuItem_Click"
+                    Header="_OfficeFlow beenden" />
             </MenuItem>
             <MenuItem Header="_Zeitmanagement">
                 <MenuItem Header="_TODO" />
@@ -45,30 +54,39 @@
             <MenuItem Header="_Termine">
                 <MenuItem Header="_Hinzufügen" />
                 <MenuItem
-                    Name="AppointmentChange"
+                    Name="EditAppointmentMenuItem"
                     Header="_Bearbeiten"
                     IsEnabled="False" />
                 <MenuItem
-                    Name="AppointmentDelete"
+                    Name="DeleteAppointmentMenuItem"
                     Header="_Löschen"
                     IsEnabled="False" />
             </MenuItem>
             <MenuItem Header="_Aufgaben">
                 <MenuItem Header="_Hinzufügen" />
                 <MenuItem
-                    Name="TaskChange"
+                    Name="EditTaskMenuItem"
                     Header="_Bearbeiten"
                     IsEnabled="False" />
                 <MenuItem
-                    Name="TaskDelete"
+                    Name="DeleteTaskMenuItem"
                     Header="_Löschen"
                     IsEnabled="False" />
             </MenuItem>
             <MenuItem Header="_Hilfe">
-                <MenuItem Header="_Kurzanleitung" />
-                <MenuItem Click="OpenGitHub_Click" Header="_GitHub" />
+                <MenuItem
+                    Name="InstructionsMenuItem"
+                    Click="InstructionsMenuItem_Click"
+                    Header="_Kurzanleitung" />
+                <MenuItem
+                    Name="GitHubMenuItem"
+                    Click="GitHubMenuItem_Click"
+                    Header="_GitHub" />
                 <Separator />
-                <MenuItem Click="OpenAbout_Click" Header="_Über OfficeFlow..." />
+                <MenuItem
+                    Name="AboutMenuItem"
+                    Click="AboutMenuItem_Click"
+                    Header="_Über OfficeFlow..." />
             </MenuItem>
         </Menu>
 
@@ -82,32 +100,42 @@
             </Grid.RowDefinitions>
 
             <!--  Wochentage  -->
-            <UniformGrid Columns="7" Rows="1">
+            <UniformGrid
+                Margin="5"
+                Columns="7"
+                Rows="1">
                 <TextBlock
+                    FontSize="14"
                     FontWeight="Bold"
                     Text="Montag"
                     TextAlignment="Center" />
                 <TextBlock
+                    FontSize="14"
                     FontWeight="Bold"
                     Text="Dienstag"
                     TextAlignment="Center" />
                 <TextBlock
+                    FontSize="14"
                     FontWeight="Bold"
                     Text="Mittwoch"
                     TextAlignment="Center" />
                 <TextBlock
+                    FontSize="14"
                     FontWeight="Bold"
                     Text="Donnerstag"
                     TextAlignment="Center" />
                 <TextBlock
+                    FontSize="14"
                     FontWeight="Bold"
                     Text="Freitag"
                     TextAlignment="Center" />
                 <TextBlock
+                    FontSize="14"
                     FontWeight="Bold"
                     Text="Samstag"
                     TextAlignment="Center" />
                 <TextBlock
+                    FontSize="14"
                     FontWeight="Bold"
                     Text="Sonntag"
                     TextAlignment="Center" />
@@ -116,6 +144,7 @@
             <!--  Kalenderinhalt  -->
             <UniformGrid
                 Grid.Row="1"
+                Margin="5"
                 Columns="7"
                 Rows="1">
                 <Border
@@ -191,6 +220,8 @@
 
             <!--  Titel  -->
             <TextBlock
+                Margin="5"
+                FontSize="18"
                 FontWeight="Bold"
                 Text="Aufgaben"
                 TextAlignment="Center" />
@@ -198,12 +229,13 @@
             <!--  Listeninhalt  -->
             <Border
                 Grid.Row="1"
+                Margin="5"
                 Padding="5"
                 BorderBrush="Gray"
                 BorderThickness="1">
-                <StackPanel>
+                <ItemsControl Name="TasksStackPanel">
                     <TextBlock Text="Aufgabe..." />
-                </StackPanel>
+                </ItemsControl>
             </Border>
         </Grid>
     </Grid>

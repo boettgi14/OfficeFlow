@@ -19,31 +19,46 @@ namespace OfficeFlow
     {
         public MainWindow(User user)
         {
+            InitializeComponent();
+
+            // Initialisieren der Datenbank für Aufgaben
+            TaskDatabaseHelper.InitializeDatabase();
+
+            // Setzen der UI auf Adminstatus des Benutzers
+            setAdminStatus(user);
+        }
+
+        private void setAdminStatus(User user)
+        {
             if (user.AdminStatus)
             {
-                // Benutzer ist Admin
-                InitializeComponent();
-                // Setzen der Adminfunktionen
-                UserManagement.IsEnabled = true;
-                AppointmentChange.IsEnabled = true;
-                AppointmentDelete.IsEnabled = true;
-                TaskChange.IsEnabled = true;
-                TaskDelete.IsEnabled = true;
+                // Nutzer ist Admin
+                // Admin Funktionen aktivieren
+                UserManagementMenuItem.IsEnabled = true;
+                EditAppointmentMenuItem.IsEnabled = true;
+                DeleteAppointmentMenuItem.IsEnabled = true;
+                EditTaskMenuItem.IsEnabled = true;
+                DeleteTaskMenuItem.IsEnabled = true;
             }
             else
             {
-                // Benutzer ist User
-                InitializeComponent();
+                // Nutzer ist kein Admin
+                // Admin Funktionen deaktivieren
+                UserManagementMenuItem.IsEnabled = true;
+                EditAppointmentMenuItem.IsEnabled = true;
+                DeleteAppointmentMenuItem.IsEnabled = true;
+                EditTaskMenuItem.IsEnabled = true;
+                DeleteTaskMenuItem.IsEnabled = true;
             }
         }
 
-        private void EndProgram_Click(object sender, RoutedEventArgs e)
+        private void EndProgramMenuItem_Click(object sender, RoutedEventArgs e)
         {
             // Schließen des MainWindows
             this.Close();
         }
 
-        private void LogOut_Click(object sender, RoutedEventArgs e)
+        private void LogOutMenuItem_Click(object sender, RoutedEventArgs e)
         {
             // Erstellen des LoginWindows
             LoginWindow loginWindow = new LoginWindow();
@@ -52,8 +67,9 @@ namespace OfficeFlow
             this.Close();
         }
 
-        private void OpenGitHub_Click(object sender, RoutedEventArgs e)
+        private void GitHubMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            // Öffnen des Browsers mit der GitHub Seite des Projekts
             Process.Start(new ProcessStartInfo
             {
                 FileName = "https://github.com/boettgi14/OfficeFlow",
@@ -61,7 +77,7 @@ namespace OfficeFlow
             });
         }
 
-        private void OpenUserManagement_Click(object sender, RoutedEventArgs e)
+        private void UserManagementMenuItem_Click(object sender, RoutedEventArgs e)
         {
             // Erstellen des UserManagementWindows
             UserManagementWindow userManagementWindow = new UserManagementWindow();
@@ -69,12 +85,28 @@ namespace OfficeFlow
             userManagementWindow.ShowDialog();
         }
 
-        private void OpenAbout_Click(object sender, RoutedEventArgs e)
+        private void AboutMenuItem_Click(object sender, RoutedEventArgs e)
         {
             // Erstellen des AboutWindows
             AboutWindow aboutWindow = new AboutWindow();
             aboutWindow.Owner = this; // Besitzer auf MainWindow setzen
             aboutWindow.ShowDialog();
+        }
+
+        private void InstructionsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Erstellen des InstructionsWindows
+            InstructionsWindow instructionsWindow = new InstructionsWindow();
+            instructionsWindow.Owner = this; // Besitzer auf MainWindow setzen
+            instructionsWindow.ShowDialog();
+        }
+
+        private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Erstellen des SettingsWindows
+            SettingsWindow settingsWindow = new SettingsWindow();
+            settingsWindow.Owner = this; // Besitzer auf MainWindow setzen
+            settingsWindow.ShowDialog();
         }
     }
 }

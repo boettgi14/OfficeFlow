@@ -10,14 +10,20 @@ namespace OfficeFlow
     {
         public int Id { get; set; }
         public string Username { get; set; }
-        public string Password { get; set; }
+        public string PasswordHash { get; set; }
         public bool AdminStatus { get; set; }
-        public User(int id, string username, string password, bool adminStatus)
+
+        public User(int id, string username, string passwordHash, bool adminStatus)
         {
             Id = id;
             Username = username;
-            Password = password;
+            PasswordHash = passwordHash;
             AdminStatus = adminStatus;
+        }
+
+        public override string ToString()
+        {
+            return $"{Id} {Username} {PasswordHash} {(AdminStatus ? "(Admin)" : "")}";
         }
     }
 }

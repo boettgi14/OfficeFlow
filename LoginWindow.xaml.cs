@@ -26,33 +26,6 @@ namespace OfficeFlow
             InitializeComponent();
         }
 
-        private void Login_Click(object sender, RoutedEventArgs e)
-        {
-            string username = UsernameTextBox.Text;
-            string password = PasswordBox.Password;
-
-            DataBaseHelper.InitializeDatabase(); // Sicherstellen, dass die Datenbank initialisiert ist
-
-            if (DataBaseHelper.VerifyLogin(username, password))
-            {
-                // Login erfolgreich
-                User user = setUser(username, password);
-                OpenMainWindow(user);
-            }
-            else
-            {
-                // Login fehlgeschlagen
-                MessageBox.Show("Ungültiger Benutzername oder Passwort.", "Login Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private User setUser(string username, string password)
-        {
-            // Benutzer aus der Datenbank abrufen
-            User user = DataBaseHelper.GetUser(username);
-            return user;
-        }
-
         private void OpenMainWindow(User user)
         {
             // Erstellen des MainWindows
@@ -60,6 +33,30 @@ namespace OfficeFlow
             mainWindow.Show();
             // Schließen des LoginWindows
             this.Close();
+        }
+
+        private void LoginButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Setzen der Nutzerdaten aus den Textfeldern
+            string username = UsernameTextBox.Text;
+            string password = PasswordBox.Password;
+
+            // Sicherstellen, dass die Datenbank initialisiert ist
+            UserDatabaseHelper.InitializeDatabase();
+
+            if (UserDatabaseHelper.VerifyLogin(username, password))
+            {
+                // Login erfolgreich
+                // Benutzer aus der Datenbank abrufen
+                User user = UserDatabaseHelper.GetUser(username);
+                // Öffnen des MainWindows mit dem Benutzer
+                OpenMainWindow(user);
+            }
+            else
+            {
+                // Login fehlgeschlagen
+                MessageBox.Show("Ungültiger Nutzername oder ungültiges Passwort!", "Login Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }

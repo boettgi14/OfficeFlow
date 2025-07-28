@@ -15,18 +15,18 @@ using System.Windows.Shapes;
 namespace OfficeFlow
 {
     /// <summary>
-    /// Interaktionslogik für AboutWindow.xaml
+    /// Interaktionslogik für SettingsWindow.xaml
     /// </summary>
-    public partial class AboutWindow : Window
+    public partial class SettingsWindow : Window
     {
-        public AboutWindow()
+        public SettingsWindow()
         {
             InitializeComponent();
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            // Schließen des AboutWindows
+            // Schließen des SettingsWindows
             this.Close();
         }
     }
