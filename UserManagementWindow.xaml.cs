@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Linq;
@@ -24,6 +25,11 @@ namespace OfficeFlow
     /// </summary>
     public partial class UserManagementWindow : Window
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserManagementWindow"/> class.
+        /// </summary>
+        /// <remarks>This constructor sets up the user management window by initializing its components
+        /// and populating the user list display.</remarks>
         public UserManagementWindow()
         {
             InitializeComponent();
@@ -31,7 +37,14 @@ namespace OfficeFlow
             UpdateUsersListBox();
         }
 
-        public void UpdateUsersListBox()
+        /// <summary>
+        /// Updates the <see cref="UsersListBox"/> to display the list of all users, including their usernames and
+        /// administrative status.
+        /// </summary>
+        /// <remarks>This method retrieves all users from the database and populates the <see
+        /// cref="UsersListBox"/> with their usernames. If a user has administrative privileges, "(Admin)" is appended
+        /// to their username in the list.</remarks>
+        private void UpdateUsersListBox()
         {
             // Leeren der ListBox
             UsersListBox.Items.Clear();
@@ -40,7 +53,7 @@ namespace OfficeFlow
             foreach (User user in users)
             {
                 // Setzen der ListBox Items
-                int index = UsersListBox.Items.Add(user.Id + " " + user.Username);
+                int index = UsersListBox.Items.Add(user.Username);
 
                 // Hinzufügen des Admin Status
                 if (user.AdminStatus)
@@ -50,6 +63,12 @@ namespace OfficeFlow
             }
         }
 
+        /// <summary>
+        /// Updates the enabled state of the Edit and Delete buttons based on the current selection in the user list.
+        /// </summary>
+        /// <remarks>If a user is selected in the <see cref="UsersListBox"/>, the Edit and Delete buttons
+        /// are enabled.  Otherwise, the buttons are disabled. This method ensures that the buttons are only active when
+        /// a valid user selection is present.</remarks>
         private void SetButtonStatus()
         {
             if (UsersListBox.SelectedItem != null)
@@ -93,27 +112,75 @@ namespace OfficeFlow
 
         private void EditUserButton_Click(object sender, RoutedEventArgs e)
         {
-            // Bearbeiten des ausgewählten Nutzers
-            string username = UsersListBox.SelectedItem.ToString().Split(" ")[1];
-            User user = UserDatabaseHelper.GetUser(username);
+            // Löschen des Admins am Ende des Nutzernamens
+            string username = UsersListBox.SelectedItem.ToString().Replace(" (Admin)", "");
+            // Ausgewählten Nutzer aus der Datenbank abrufen
+            User? user = UserDatabaseHelper.GetUser(username);
 
-            // Erstellen des EdiUserWindows
-            EditUserWindow editUserWindow = new EditUserWindow(user);
-            editUserWindow.Owner = this; // Besitzer auf UserManagementWindow setzen
-            editUserWindow.ShowDialog();
+            if (user == null)
+            {
+                // Benutzer nicht gefunden
+                MessageBox.Show("Der Benutzer konnte nicht gefunden werden! Bitte verusche Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else
+            {
+                // Erstellen des EdiUserWindows
+                EditUserWindow editUserWindow = new EditUserWindow(user);
+                editUserWindow.Owner = this; // Besitzer auf UserManagementWindow setzen
+                editUserWindow.ShowDialog();
 
-            // Updaten der Nutzerliste nach Schließen des EditUserWindows
-            UpdateUsersListBox();
+                // Updaten der Nutzerliste nach Schließen des EditUserWindows
+                UpdateUsersListBox();
+            }
         }
 
         private void DeleteUserButton_Click(object sender, RoutedEventArgs e)
         {
+            // Löschen des Admins am Ende des Nutzernamens
+            string username = UsersListBox.SelectedItem.ToString().Replace(" (Admin)", "");
             // Löschen des ausgewählten Nutzers
-            string username = UsersListBox.SelectedItem.ToString().Split(" ")[1];
-            UserDatabaseHelper.DeleteUser(username);
+            int result = UserDatabaseHelper.DeleteUser(username);
 
-            // Updaten der Nutzerliste nach dem Löschen
-            UpdateUsersListBox();
+            if (result == 1)
+            {
+                // Nutzer erfolgreich gelöscht
+                // Updaten der Nutzerliste nach dem Löschen
+                UpdateUsersListBox();
+            }
+            else
+            {
+                // Fehler beim Löschen des Nutzers
+                MessageBox.Show("Fehler beim Löschen des Nutzers! Bitte versuchen Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void UsersListBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Überprüfen, ob die Entf-Taste gedrückt wurde
+            if (e.Key == Key.Delete)
+            {
+                // Überprüfen, ob ein Nutzer ausgewählt ist
+                var selectedUser = UsersListBox.SelectedItem;
+                if (selectedUser != null)
+                {
+                    // Löschen des Admins am Ende des Nutzernamens
+                    string username = UsersListBox.SelectedItem.ToString().Replace(" (Admin)", "");
+                    // Löschen des ausgewählten Nutzers
+                    int result = UserDatabaseHelper.DeleteUser(username);
+
+                    if (result == 1)
+                    {
+                        // Nutzer erfolgreich gelöscht
+                        // Updaten der Nutzerliste nach dem Löschen
+                        UpdateUsersListBox();
+                    }
+                    else
+                    {
+                        // Fehler beim Löschen des Nutzers
+                        MessageBox.Show("Fehler beim Löschen des Nutzers! Bitte versuchen Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            }
         }
     }
 }

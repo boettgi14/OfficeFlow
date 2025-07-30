@@ -37,8 +37,7 @@
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
                 VerticalContentAlignment="Center"
-                MaxLength="20"
-                TextWrapping="Wrap" />
+                MaxLength="20" />
         </Grid>
 
         <!--  Passwort  -->

@@ -10,14 +10,60 @@ using System.Xml.Linq;
 
 namespace OfficeFlow
 {
+    /// <summary>
+    /// Provides helper methods for managing tasks in a SQLite database.
+    /// </summary>
+    /// <remarks>The <see cref="TaskDatabaseHelper"/> class includes methods for initializing the database, 
+    /// adding, updating, deleting, and retrieving tasks. It operates on a SQLite database file  with a predefined
+    /// schema for storing task information. This class is designed to simplify  task management operations and ensure
+    /// proper interaction with the database. <para> The database schema includes the following fields in the "tasks"
+    /// table: <list type="bullet"> <item><description><c>id</c>: An auto-incrementing primary key.</description></item>
+    /// <item><description><c>name</c>: A non-null text field for the task name.</description></item>
+    /// <item><description><c>is_completed</c>: A non-null boolean field indicating whether the task is
+    /// completed.</description></item> <item><description><c>description</c>: An optional text field for additional
+    /// task details.</description></item> <item><description><c>due_date</c>: An optional date field for the task's due
+    /// date.</description></item> </list> </para> <para> This class uses a static connection string and database file
+    /// path, which are configured internally.  Ensure that the database file is accessible and the schema is correctly
+    /// set up before using the methods. </para></remarks>
     public class TaskDatabaseHelper
     {
+        /// <summary>
+        /// The file path to the database used for storing tasks.
+        /// </summary>
+        /// <remarks>This field is a static, read-only string that specifies the location of the database
+        /// file. It is intended for internal use only and cannot be modified at runtime.</remarks>
+        private static readonly string _dbFilePath = "tasks.db";
+        /// <summary>
+        /// Represents the connection string used to connect to the database.
+        /// </summary>
+        /// <remarks>The connection string is constructed using the database file path. Ensure that the
+        /// <c>_dbFilePath</c> variable is correctly set to a valid file path before using this connection
+        /// string.</remarks>
+        private static readonly string _connectionString = $"Data Source={_dbFilePath};";
+
+        /// <summary>
+        /// Initializes the database by creating a new SQLite database file and a "tasks" table if it does not already
+        /// exist.
+        /// </summary>
+        /// <remarks>This method checks for the existence of a database file. If the file
+        /// does not exist, it creates the file, establishes a connection, and executes a SQL command to create a
+        /// "tasks" table with the following schema: <list type="bullet"> <item><description><c>id</c>: An
+        /// auto-incrementing primary key.</description></item> <item><description><c>name</c>: A non-null text field
+        /// for the task name.</description></item> <item><description><c>is_completed</c>: A non-null boolean field
+        /// indicating whether the task is completed.</description></item> <item><description><c>description</c>: An
+        /// optional text field for additional task details.</description></item> <item><description><c>due_date</c>: An
+        /// optional date field for the task's due date.</description></item> </list> If the database file already
+        /// exists, the method does nothing and returns -1.</remarks>
+        /// <returns>An integer indicating the result of the database initialization: <list type="bullet"> <item><description>A
+        /// non-negative value representing the number of rows affected by the table creation command if the database
+        /// was initialized successfully.</description></item> <item><description><c>-1</c> if the database file already
+        /// exists and no action was taken.</description></item> </list></returns>
         public static int InitializeDatabase()
         {
-            if (!File.Exists("tasks.db"))
+            if (!File.Exists(_dbFilePath))
             {
                 // Datenbankdatei erstellen und Verbindung öffnen
-                using var connection = new SqliteConnection("Data Source=tasks.db");
+                using var connection = new SqliteConnection(_connectionString);
                 connection.Open();
 
                 // Create Befehl vorbereiten
@@ -42,10 +88,19 @@ namespace OfficeFlow
             return -1; // Datenbank existiert bereits
         }
 
-        public static int AddTask(string name, string? description, DateTime? dueDate)
+        /// <summary>
+        /// Adds a new task to the database with the specified name, description, and due date.
+        /// </summary>
+        /// <remarks>This method inserts a new task into the database with the specified details. The task
+        /// is initially marked as not completed.</remarks>
+        /// <param name="name">The name of the task. This value cannot be null or empty.</param>
+        /// <param name="description">An optional description of the task. If null, the description will be stored as null in the database.</param>
+        /// <param name="dueDate">An optional due date for the task. If null, no due date will be set.</param>
+        /// <returns>The number of rows affected by the operation. Typically, this will be 1 if the task is successfully added.</returns>
+        public static int AddTask(string name, string? description, DateOnly? dueDate)
         {
             // Datenbankverbindung öffnen
-            using var connection = new SqliteConnection("Data Source=tasks.db");
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             // Insert Befehl vorbereiten
@@ -70,10 +125,197 @@ namespace OfficeFlow
             return result;
         }
 
-        public static Task GetTask(int inputId)
+        /// <summary>
+        /// Deletes a task from the database with the specified identifier.
+        /// </summary>
+        /// <remarks>This method connects to a SQLite database and removes the task with
+        /// the specified <paramref name="id"/> from the "tasks" table. Ensure that the database is accessible and the
+        /// "tasks" table exists before calling this method.</remarks>
+        /// <param name="id">The unique identifier of the task to delete. Must correspond to an existing task in the database.</param>
+        /// <returns>The number of rows affected by the delete operation. Returns 0 if no task with the specified identifier
+        /// exists.</returns>
+        public static int DeleteTask(int id)
         {
             // Datenbankverbindung öffnen
-            using var connection = new SqliteConnection("Data Source=tasks.db");
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Select Befehl vorbereiten
+            var insertCommand = connection.CreateCommand();
+            insertCommand.CommandText = @"
+                DELETE FROM tasks 
+                WHERE id=$id;";
+
+            // Parameter hinzufügen
+            insertCommand.Parameters.AddWithValue("$id", id);
+
+            // Select Befehl ausführen
+            int result = insertCommand.ExecuteNonQuery();
+
+            // Schließen der Verbindung
+            connection.Close();
+
+            // Rückgabe des Ergebnisses
+            return result;
+        }
+
+        /// <summary>
+        /// Updates the name of a task in the database with the specified ID.
+        /// </summary>
+        /// <remarks>This method updates the name of a task in a SQLite database. Ensure that the database
+        /// file exists and is accessible. The method uses a parameterized query to prevent SQL
+        /// injection.</remarks>
+        /// <param name="id">The unique identifier of the task to update. Must correspond to an existing task in the database.</param>
+        /// <param name="name">The new name to assign to the task. Cannot be null or empty.</param>
+        /// <returns>The number of rows affected by the update operation. Returns 0 if no task with the specified ID exists.</returns>
+        public static int EditName(int id, string name)
+        {
+            // Datenbankverbindung öffnen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Update Befehl vorbereiten
+            var updateCommand = connection.CreateCommand();
+            updateCommand.CommandText = @"
+                UPDATE tasks 
+                SET name = $name
+                WHERE id = $id;";
+
+            // Parameter hinzufügen
+            updateCommand.Parameters.AddWithValue("$id", id);
+            updateCommand.Parameters.AddWithValue("$name", name);
+
+            // Update Befehl ausführen
+            int result = updateCommand.ExecuteNonQuery();
+
+            // Schließen der Verbindung
+            connection.Close();
+
+            // Rückgabe des Ergebnisses
+            return result;
+        }
+
+        /// <summary>
+        /// Updates the completion status of a task in the database.
+        /// </summary>
+        /// <remarks>This method updates the is_completed field of a task in the tasks table.  Ensure that
+        /// the database connection string and schema are correctly configured before calling this method.</remarks>
+        /// <param name="id">The unique identifier of the task to update.</param>
+        /// <param name="isCompleted">A boolean value indicating the new completion status of the task.  true sets the task as completed; false
+        /// sets it as not completed.</param>
+        /// <returns>The number of rows affected by the update operation. Returns 0 if no task with the specified id exists.</returns>
+        public static int EditIsCompleted(int id, bool isCompleted)
+        {
+            // Datenbankverbindung öffnen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Update Befehl vorbereiten
+            var updateCommand = connection.CreateCommand();
+            updateCommand.CommandText = @"
+                UPDATE tasks 
+                SET is_completed = $isCompleted
+                WHERE id = $id;";
+
+            // Parameter hinzufügen
+            updateCommand.Parameters.AddWithValue("$id", id);
+            updateCommand.Parameters.AddWithValue("$isCompleted", isCompleted);
+
+            // Update Befehl ausführen
+            int result = updateCommand.ExecuteNonQuery();
+
+            // Schließen der Verbindung
+            connection.Close();
+
+            // Rückgabe des Ergebnisses
+            return result;
+        }
+
+        /// <summary>
+        /// Updates the description of a task in the database.
+        /// </summary>
+        /// <param name="id">The unique identifier of the task to update.</param>
+        /// <param name="description">The new description for the task. If <see langword="null"/>, the description will be set to <see
+        /// langword="null"/> in the database.</param>
+        /// <returns>The number of rows affected by the update operation. Returns 0 if no task with the specified <paramref
+        /// name="id"/> exists.</returns>
+        public static int EditDescription(int id, string? description)
+        {
+            // Datenbankverbindung öffnen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Update Befehl vorbereiten
+            var updateCommand = connection.CreateCommand();
+            updateCommand.CommandText = @"
+                UPDATE tasks 
+                SET description = $description
+                WHERE id = $id;";
+
+            // Parameter hinzufügen
+            updateCommand.Parameters.AddWithValue("$id", id);
+            updateCommand.Parameters.AddWithValue("$description", description ?? (object)DBNull.Value);
+
+            // Update Befehl ausführen
+            int result = updateCommand.ExecuteNonQuery();
+
+            // Schließen der Verbindung
+            connection.Close();
+
+            // Rückgabe des Ergebnisses
+            return result;
+        }
+
+        /// <summary>
+        /// Updates the due date of a task in the database.
+        /// </summary>
+        /// <remarks>This method updates the due date of a task in the "tasks" table of the database. If
+        /// the specified <paramref name="id"/> does not exist, no rows will be updated, and the method will return
+        /// 0.</remarks>
+        /// <param name="id">The unique identifier of the task to update.</param>
+        /// <param name="dueDate">The new due date for the task. If <see langword="null"/>, the due date will be cleared.</param>
+        /// <returns>The number of rows affected by the update operation. Returns 0 if no task with the specified <paramref
+        /// name="id"/> exists.</returns>
+        public static int EditDueDate(int id, DateOnly? dueDate)
+        {
+            // Datenbankverbindung öffnen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Update Befehl vorbereiten
+            var updateCommand = connection.CreateCommand();
+            updateCommand.CommandText = @"
+                UPDATE tasks 
+                SET due_Date = $dueDate
+                WHERE id = $id;";
+
+            // Parameter hinzufügen
+            updateCommand.Parameters.AddWithValue("$id", id);
+            updateCommand.Parameters.AddWithValue("$dueDate", dueDate.HasValue ? (object)dueDate.Value : DBNull.Value);
+
+            // Update Befehl ausführen
+            int result = updateCommand.ExecuteNonQuery();
+
+            // Schließen der Verbindung
+            connection.Close();
+
+            // Rückgabe des Ergebnisses
+            return result;
+        }
+
+        /// <summary>
+        /// Retrieves a task from the database by its unique identifier.
+        /// </summary>
+        /// <remarks>This method queries the database for a task with the specified identifier.  If a
+        /// matching task is found, it is returned as a <see cref="Task"/> object.  If no matching task is found, the
+        /// method returns <see langword="null"/>.</remarks>
+        /// <param name="inputId">The unique identifier of the task to retrieve.</param>
+        /// <returns>A <see cref="Task"/> object representing the task with the specified identifier,  or <see langword="null"/>
+        /// if no task with the given identifier exists.</returns>
+        public static Task? GetTask(int inputId)
+        {
+            // Datenbankverbindung öffnen
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             // Select Befehl vorbereiten
@@ -95,7 +337,7 @@ namespace OfficeFlow
                 string name = reader.GetString(1);
                 bool isCompleted = reader.GetBoolean(2);
                 string? description = reader.IsDBNull(3) ? null : reader.GetString(3);
-                DateTime? dueDate = reader.IsDBNull(4) ? (DateTime?)null : reader.GetDateTime(4);
+                DateOnly? dueDate = reader.IsDBNull(4) ? null : DateOnly.FromDateTime(reader.GetDateTime(4));
 
                 // Schließen der Verbindung
                 connection.Close();
@@ -109,6 +351,49 @@ namespace OfficeFlow
 
             // Fehlerfall gibt null zurück
             return null;
+        }
+
+        /// <summary>
+        /// Retrieves all tasks from the database.
+        /// </summary>
+        /// <remarks>This method connects to a SQLite database, executes a query to retrieve all tasks, 
+        /// and returns them as a list of <see cref="Task"/> objects. Each task includes its  ID, name, completion
+        /// status, optional description, and optional due date.</remarks>
+        /// <returns>A list of <see cref="Task"/> objects representing all tasks in the database.  The list will be empty if no
+        /// tasks are found.</returns>
+        public static List<Task> GetAllTasks()
+        {
+            // Initalisieren der Aufgabenliste
+            List<Task> tasks = new List<Task>();
+
+            // Datenbankverbindung öffnen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Select Befehl vorbereiten
+            var command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM tasks;";
+
+            // Select Befehl ausführen
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                // Auslesen der Ergebnisse
+                int id = reader.GetInt32(0);
+                string name = reader.GetString(1);
+                bool isCompleted = reader.GetBoolean(2);
+                string? description = reader.IsDBNull(3) ? null : reader.GetString(3);
+                DateOnly? dueDate = reader.IsDBNull(4) ? null : DateOnly.FromDateTime(reader.GetDateTime(4));
+
+                Task task = new Task(id, name, isCompleted, description, dueDate);
+                tasks.Add(task);
+            }
+
+            // Schließen der Verbindung
+            connection.Close();
+
+            // Rückgabe der Nutzerliste
+            return tasks;
         }
     }
 }

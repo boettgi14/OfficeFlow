@@ -33,6 +33,7 @@
             Name="UsersListBox"
             Grid.RowSpan="4"
             Margin="5"
+            KeyDown="UsersListBox_KeyDown"
             SelectionChanged="UsersListBox_SelectionChanged" />
 
         <!--  Buttons für Nutzerverwaltung  -->

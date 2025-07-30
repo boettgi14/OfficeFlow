@@ -27,12 +27,12 @@ namespace OfficeFlow
         private void SafeButton_Click(object sender, RoutedEventArgs e)
         {
             // Eingabefelder auslesen
-            string username = UsernameTextBox.Text;
+            string username = UsernameTextBox.Text.Trim();
             string password1 = PasswordBox1.Password;
             string password2 = PasswordBox2.Password;
             bool adminStatus = AdminCheckBox.IsChecked == true;
 
-            if (username == "" || password1 == "" || password2 == "")
+            if (username == "" || password1 == "" || password1.Trim() == "" || password2 == "" || password2.Trim() == "")
             {
                 // Eingabefelder sind leer
                 MessageBox.Show("Bitte füllen Sie alle Felder aus!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);

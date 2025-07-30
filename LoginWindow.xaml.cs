@@ -26,6 +26,13 @@ namespace OfficeFlow
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Opens the main application window for the specified user and closes the current login window.
+        /// </summary>
+        /// <remarks>This method creates an instance of the <see cref="MainWindow"/> class, passing the
+        /// specified user as a parameter, and displays it. After opening the main window, the current login window is
+        /// closed.</remarks>
+        /// <param name="user">The user for whom the main application window will be opened. Cannot be null.</param>
         private void OpenMainWindow(User user)
         {
             // Erstellen des MainWindows

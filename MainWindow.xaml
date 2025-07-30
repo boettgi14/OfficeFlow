@@ -5,11 +5,17 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:OfficeFlow"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"
     Title="OfficeFlow"
     MinWidth="800"
     MinHeight="450"
     WindowState="Maximized"
     mc:Ignorable="d">
+
+    <!--  DataContext für Aufgabenliste  -->
+    <Window.DataContext>
+        <local:MainViewModel />
+    </Window.DataContext>
 
     <!--  Layout  -->
     <Grid>
@@ -52,7 +58,7 @@
                 <MenuItem Header="_TODO" />
             </MenuItem>
             <MenuItem Header="_Termine">
-                <MenuItem Header="_Hinzufügen" />
+                <MenuItem Name="AddAppointmentMenuItem" Header="_Hinzufügen" />
                 <MenuItem
                     Name="EditAppointmentMenuItem"
                     Header="_Bearbeiten"
@@ -63,13 +69,18 @@
                     IsEnabled="False" />
             </MenuItem>
             <MenuItem Header="_Aufgaben">
-                <MenuItem Header="_Hinzufügen" />
+                <MenuItem
+                    Name="AddTaskMenuItem"
+                    Click="AddTaskMenuItem_Click"
+                    Header="_Hinzufügen" />
                 <MenuItem
                     Name="EditTaskMenuItem"
+                    Click="EditTaskMenuItem_Click"
                     Header="_Bearbeiten"
                     IsEnabled="False" />
                 <MenuItem
                     Name="DeleteTaskMenuItem"
+                    Click="DeleteTaskMenuItem_Click"
                     Header="_Löschen"
                     IsEnabled="False" />
             </MenuItem>
@@ -227,16 +238,63 @@
                 TextAlignment="Center" />
 
             <!--  Listeninhalt  -->
-            <Border
+            <ListBox
+                Name="TasksListBox"
                 Grid.Row="1"
                 Margin="5"
                 Padding="5"
                 BorderBrush="Gray"
-                BorderThickness="1">
-                <ItemsControl Name="TasksStackPanel">
-                    <TextBlock Text="Aufgabe..." />
-                </ItemsControl>
-            </Border>
+                BorderThickness="1"
+                ItemsSource="{Binding Tasks}"
+                KeyDown="TasksListBox_KeyDown"
+                SelectionChanged="TasksListBox_SelectionChanged">
+                <ListBox.ItemTemplate>
+                    <!--  Datenvorlage für Aufgaben hinzufügen  -->
+                    <DataTemplate DataType="{x:Type local:Task}">
+                        <StackPanel Margin="5" Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal">
+                                <!--  Erledigt  -->
+                                <CheckBox
+                                    Name="IsCompletedCheckBox"
+                                    Margin="5"
+                                    Checked="IsCompletedCheckBox_Checked"
+                                    IsChecked="{Binding IsCompleted, Mode=TwoWay}"
+                                    Unchecked="IsCompletedCheckBox_Checked" />
+                                <!--  Name  -->
+                                <TextBlock Margin="5" Text="{Binding Name}" />
+                            </StackPanel>
+                            <!--  Beschreibung  -->
+                            <TextBlock Margin="5" Text="{Binding Description}">
+                                <!--  Verstecken bei null  -->
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Description}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <!--  Fälligkeitsdatum  -->
+                            <TextBlock Margin="5" Text="{Binding DueDate, StringFormat='{}{0:dd.MM.yyyy}'}">
+                                <!--  Verstecken bei null  -->
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DueDate}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Grid>
     </Grid>
 </Window>
