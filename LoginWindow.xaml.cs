@@ -24,6 +24,15 @@ namespace OfficeFlow
         public LoginWindow()
         {
             InitializeComponent();
+
+            // Initalisieren der Datenbank für Einstellungen
+            SettingsDatabaseHelper.InitializeDatabase();
+
+            // Initialisieren der Datenbank für Nutzer
+            UserDatabaseHelper.InitializeDatabase();
+
+            // Initialisieren der Datenbank für Aufgaben
+            TaskDatabaseHelper.InitializeDatabase();
         }
 
         /// <summary>
@@ -47,9 +56,6 @@ namespace OfficeFlow
             // Setzen der Nutzerdaten aus den Textfeldern
             string username = UsernameTextBox.Text;
             string password = PasswordBox.Password;
-
-            // Sicherstellen, dass die Datenbank initialisiert ist
-            UserDatabaseHelper.InitializeDatabase();
 
             if (UserDatabaseHelper.VerifyLogin(username, password))
             {

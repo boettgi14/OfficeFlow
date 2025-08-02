@@ -26,15 +26,24 @@ namespace OfficeFlow
     public partial class UserManagementWindow : Window
     {
         /// <summary>
+        /// Gets or sets the currently authenticated user.
+        /// </summary>
+        User CurrentUser { get; set; }
+        /// <summary>
         /// Initializes a new instance of the <see cref="UserManagementWindow"/> class.
         /// </summary>
         /// <remarks>This constructor sets up the user management window by initializing its components
         /// and populating the user list display.</remarks>
-        public UserManagementWindow()
+        public UserManagementWindow(User user)
         {
             InitializeComponent();
-            /// Anzeigen der Nutzerliste
+            CurrentUser = user;
+
+            // Anzeigen der Nutzerliste
             UpdateUsersListBox();
+
+            // Setzen des Button Status
+            SetButtonStatus();
         }
 
         /// <summary>
@@ -138,10 +147,29 @@ namespace OfficeFlow
         {
             // Löschen des Admins am Ende des Nutzernamens
             string username = UsersListBox.SelectedItem.ToString().Replace(" (Admin)", "");
-            // Löschen des ausgewählten Nutzers
-            int result = UserDatabaseHelper.DeleteUser(username);
+            User? user = UserDatabaseHelper.GetUser(username);
 
-            if (result == 1)
+            // Fehlerbehandlung für Holen des Nutzers
+            if (user == null)
+            {
+                MessageBox.Show("Fehler beim Finden des Nutzers! Bitte versuchen Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Verhindern vom Löschen des aktuell angemeldeten Nutzers
+            if (CurrentUser.Username == user.Username)
+            {
+                MessageBox.Show("Sie können Ihren eigenen Nutzer nicht löschen!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Löschen des ausgewählten Nutzers
+            int userResult = UserDatabaseHelper.DeleteUser(user.Username);
+
+            // Löschen der ausgewählten Nutzereinstellungen
+            int settingsResult = SettingsDatabaseHelper.DeleteUser(user.Id);
+
+            if (userResult == 1 && settingsResult == 1)
             {
                 // Nutzer erfolgreich gelöscht
                 // Updaten der Nutzerliste nach dem Löschen
@@ -149,7 +177,7 @@ namespace OfficeFlow
             }
             else
             {
-                // Fehler beim Löschen des Nutzers
+                // Fehler beim Löschen des Nutzers oder der Einstellungen
                 MessageBox.Show("Fehler beim Löschen des Nutzers! Bitte versuchen Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -180,6 +208,35 @@ namespace OfficeFlow
                         MessageBox.Show("Fehler beim Löschen des Nutzers! Bitte versuchen Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
+            }
+        }
+
+        private void DeleteAllUsersButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Bestätigungsdialog anzeigen
+            var result = MessageBox.Show("Sind Sie sicher, dass Sie alle Nutzer und deren Einstellungen löschen möchten?\n" +
+                "Daraufhin wird OfficeFlow geschlossen und der Standardnutzer wiederhergestellt.", "Bestätigung", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                // Abbrechen des Löschvorgangs
+                return;
+            }
+
+            // Löschen aller Nutzer und deren Einstellungen
+            int settingsResult = SettingsDatabaseHelper.DeleteDatabase();
+            int userResult = UserDatabaseHelper.DeleteDatabase();
+
+            if (settingsResult == 1 && userResult == 1)
+            {
+                // Nutzer und Einstellungen erfolgreich gelöscht
+                // Schließen der Anwendung
+                Application.Current.Shutdown();
+            }
+            else
+            {
+                // Fehler beim Löschen der Nutzer und Einstellungen
+                MessageBox.Show("Fehler beim Löschen der Nutzer! Bitte versuchen Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

@@ -21,6 +21,12 @@ namespace OfficeFlow
         /// Gets the main view model associated with the current data context.
         /// </summary>
         public MainViewModel ViewModel => (MainViewModel)DataContext;
+        /// <summary>
+        /// Represents the currently logged-in user.
+        /// </summary>
+        /// <remarks>This field holds the user information for the active session.  It is intended for
+        /// internal use and should not be accessed directly outside of the class.</remarks>
+        private User CurrentUser;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MainWindow"/> class.
@@ -30,14 +36,48 @@ namespace OfficeFlow
         {
             InitializeComponent();
 
-            // Initialisieren der Datenbank für Aufgaben
-            TaskDatabaseHelper.InitializeDatabase();
+            CurrentUser = user;
+
+            // Setzen der UI auf Einstellungen des Nutzers
+            setSettings(CurrentUser);
+
+            // Setzen der UI auf aktuellen Zustand der Listen
+            SetTaskButtonStatus();
+            SetAppointmentButtonStatus();
 
             // Updaten der Aufgabenliste im ViewModel
-            ViewModel.updateTasksListBox();
+            ViewModel.UpdateTasksListBox(CurrentUser.Id);
 
             // Setzen der UI auf Adminstatus des Benutzers
-            setAdminStatus(user);
+            setAdminStatus(CurrentUser);
+        }
+
+        /// <summary>
+        /// Configures the task sorting settings for the specified user based on their preferences.
+        /// </summary>
+        /// <remarks>The method retrieves the user's preferred task sorting order from the settings
+        /// database and updates the task view accordingly.  If the user prefers sorting by date, the tasks are sorted
+        /// by their due dates. Otherwise, tasks are sorted by their IDs. The corresponding menu items are also updated
+        /// to reflect the selected sorting order.</remarks>
+        /// <param name="user">The user whose task sorting settings are to be applied. This parameter cannot be null.</param>
+        private void setSettings(User user)
+        {
+            // Sortierung der Aufgabenliste
+            string orderTasksBy = SettingsDatabaseHelper.GetOrderBy(CurrentUser.Id);
+            if (orderTasksBy == "date")
+            {
+                // Sortieren nach Fälligkeitsdatum
+                ViewModel.OrderTasksBy("date");
+                OrderTasksByIdMenuItem.IsChecked = false;
+                OrderTasksByDateMenuItem.IsChecked = true;
+            }
+            else
+            {
+                // Standardmäßig nach Id sortieren
+                ViewModel.OrderTasksBy("id");
+                OrderTasksByIdMenuItem.IsChecked = true;
+                OrderTasksByDateMenuItem.IsChecked = false;
+            }
         }
 
         /// <summary>
@@ -61,7 +101,7 @@ namespace OfficeFlow
             {
                 // Nutzer ist kein Admin
                 // Admin Funktionen deaktivieren
-                UserManagementMenuItem.IsEnabled = true;
+                UserManagementMenuItem.IsEnabled = false;
             }
         }
 
@@ -86,6 +126,19 @@ namespace OfficeFlow
                 EditTaskMenuItem.IsEnabled = false;
                 DeleteTaskMenuItem.IsEnabled = false;
             }
+        }
+
+        /// <summary>
+        /// Disables the appointment-related menu items.
+        /// </summary>
+        /// <remarks>This method sets the <see cref="EditAppointmentMenuItem"/> and  <see
+        /// cref="DeleteAppointmentMenuItem"/> menu items to a disabled state,  preventing user interaction with these
+        /// options.</remarks>
+        private void SetAppointmentButtonStatus()
+        {
+            // Deaktivieren der Buttons
+            EditAppointmentMenuItem.IsEnabled = false;
+            DeleteAppointmentMenuItem.IsEnabled = false;
         }
 
         private void EndProgramMenuItem_Click(object sender, RoutedEventArgs e)
@@ -116,7 +169,7 @@ namespace OfficeFlow
         private void UserManagementMenuItem_Click(object sender, RoutedEventArgs e)
         {
             // Erstellen des UserManagementWindows
-            UserManagementWindow userManagementWindow = new UserManagementWindow();
+            UserManagementWindow userManagementWindow = new UserManagementWindow(CurrentUser);
             userManagementWindow.Owner = this; // Besitzer auf MainWindow setzen
             userManagementWindow.ShowDialog();
         }
@@ -140,19 +193,25 @@ namespace OfficeFlow
         private void SettingsMenuItem_Click(object sender, RoutedEventArgs e)
         {
             // Erstellen des SettingsWindows
-            SettingsWindow settingsWindow = new SettingsWindow();
+            SettingsWindow settingsWindow = new SettingsWindow(CurrentUser);
             settingsWindow.Owner = this; // Besitzer auf MainWindow setzen
             settingsWindow.ShowDialog();
+
+            // Setzen der UI auf Einstellungen des Nutzers
+            setSettings(CurrentUser);
+
+            // Updaten der Aufgabenliste im ViewModel
+            ViewModel.UpdateTasksListBox(CurrentUser.Id);
         }
 
         private void AddTaskMenuItem_Click(object sender, RoutedEventArgs e)
         {
             // Erstellen des AddTaskWindows
-            AddTaskWindow addTaskWindow = new AddTaskWindow();
+            AddTaskWindow addTaskWindow = new AddTaskWindow(CurrentUser);
             addTaskWindow.Owner = this; // Besitzer auf MainWindow setzen
             addTaskWindow.ShowDialog();
             // Aktualisieren der Aufgabenliste im ViewModel nach dem Hinzufügen
-            ViewModel.updateTasksListBox();
+            ViewModel.UpdateTasksListBox(CurrentUser.Id);
         }
 
         private void EditTaskMenuItem_Click(object sender, RoutedEventArgs e)
@@ -166,7 +225,7 @@ namespace OfficeFlow
                 editTaskWindow.Owner = this; // Besitzer auf MainWindow setzen
                 editTaskWindow.ShowDialog();
                 // Aktualisieren der Aufgabenliste im ViewModel nach dem Bearbeiten
-                ViewModel.updateTasksListBox();
+                ViewModel.UpdateTasksListBox(CurrentUser.Id);
             }
             else
             {
@@ -188,7 +247,7 @@ namespace OfficeFlow
                 {
                     // Aufgabe erfolgreich gelöscht
                     // Aktualisieren der Aufgabenliste im ViewModel
-                    ViewModel.updateTasksListBox();
+                    ViewModel.UpdateTasksListBox(CurrentUser.Id);
                 }
                 else
                 {
@@ -206,6 +265,15 @@ namespace OfficeFlow
 
         private void TasksListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            var listBox = sender as ListBox;
+
+            // Prüfen ob eine Trenner ausgewählt wurde
+            if (listBox?.SelectedItem is ITaskItem item && !item.IsSelectable)
+            {
+                // Auswahl von Trenner rückgängig machen
+                listBox.SelectedItem = null;
+            }
+
             // Überprüfen, ob eine Aufgabe ausgewählt wurde
             SetTaskButtonStatus();
         }
@@ -230,7 +298,7 @@ namespace OfficeFlow
                         {
                             // Aufgabe erfolgreich gelöscht
                             // Updaten der Aufgabenliste nach dem Löschen
-                            ViewModel.updateTasksListBox();
+                            ViewModel.UpdateTasksListBox(CurrentUser.Id);
                         }
                         else
                         {
@@ -261,7 +329,7 @@ namespace OfficeFlow
                 {
                     // Aufgabe erfolgreich aktualisiert
                     // Updaten der Aufgabenliste nach dem Aktualisieren
-                    ViewModel.updateTasksListBox();
+                    ViewModel.UpdateTasksListBox(CurrentUser.Id);
                 }
                 else
                 {
@@ -269,6 +337,42 @@ namespace OfficeFlow
                     MessageBox.Show("Fehler beim Aktualisieren der Aufgabe! Bitte versuchen Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+        }
+
+        private void OrderTasksMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            int result = 0;
+            if (sender == OrderTasksByIdMenuItem)
+            {
+                // Sortieren der Aufgaben nach Id
+                OrderTasksByIdMenuItem.IsChecked = true;
+                OrderTasksByDateMenuItem.IsChecked = false;
+                ViewModel.OrderTasksBy("id");
+                ViewModel.UpdateTasksListBox(CurrentUser.Id);
+                result = SettingsDatabaseHelper.SetOrderBy(CurrentUser.Id, "id");
+            }
+            else if (sender == OrderTasksByDateMenuItem)
+            {
+                // Sortieren der Aufgaben nach Fälligkeitsdatum
+                OrderTasksByIdMenuItem.IsChecked = false;
+                OrderTasksByDateMenuItem.IsChecked = true;
+                ViewModel.OrderTasksBy("date");
+                ViewModel.UpdateTasksListBox(CurrentUser.Id);
+                result = SettingsDatabaseHelper.SetOrderBy(CurrentUser.Id, "date");
+            }
+            if (result != 1)
+            {
+                // Fehler beim Setzen der Sortierung
+                MessageBox.Show("Fehler beim Abspeichern der nutzerspezifischen Einstellung! Bitte versuchen Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void AddAppointmentMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Erstellen des AddAppointmentWindows
+            AddAppointmentWindow addAppointmentWindow = new AddAppointmentWindow();
+            addAppointmentWindow.Owner = this; // Besitzer auf MainWindow setzen
+            addAppointmentWindow.ShowDialog();
         }
     }
 }

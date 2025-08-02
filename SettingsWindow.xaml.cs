@@ -12,6 +12,13 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
+/*
+ * TODO
+ * - Export von Aufgaben nach Outlook einbauen
+ *      (Änderung registrieren, Outlook importieren, Änderung speichern, Outlook löschen, Outlook exportieren)
+ *      (Aktualisierung registrieren, Outlook importieren, Aktualisierung durchführen)
+ */
+
 namespace OfficeFlow
 {
     /// <summary>
@@ -19,15 +26,97 @@ namespace OfficeFlow
     /// </summary>
     public partial class SettingsWindow : Window
     {
-        public SettingsWindow()
+        /// <summary>
+        /// Gets or sets the currently authenticated user.
+        /// </summary>
+        private User CurrentUser { get; set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SettingsWindow"/> class with the specified user.
+        /// </summary>
+        /// <param name="user">The user for whom the settings window is being initialized. Cannot be <see langword="null"/>.</param>
+        public SettingsWindow(User user)
         {
             InitializeComponent();
+            CurrentUser = user;
+        }
+
+        private void ResetSettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Bestätigungsdialog anzeigen
+            var result = MessageBox.Show("Sind Sie sicher, dass sie ihre Nutzereinstellungen zurücksetzen möchten?", "Bestätigung", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                // Abbrechen des Zurücksetzens
+                return;
+            }
+
+            // Zurücksetzen der Nutzereinstellungen
+            int settingsResult = SettingsDatabaseHelper.ResetUser(CurrentUser.Id);
+
+
+            if (settingsResult != 1)
+            {
+                // Fehler beim Löschen der Nutzereinstellungen
+                MessageBox.Show("Fehler beim Zurücksetzen der Nutzereinstellungen! Bitte versuchen Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void DeleteExportedTasksButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Bestätigungsdialog anzeigen
+            var result = MessageBox.Show("Sind Sie sicher, dass sie alle exportierten Aufgaben aus Outlook löschen möchten?", "Bestätigung", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                // Abbrechen des Löschens
+                return;
+            }
+
+            // Löschen der exportierten Aufgaben aus Outlook
+            OutlookHelper.DeleteAllExportedTasks();
+        }
+
+        private void DeleteExportedAppointmentsButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Anzeigen des Hinweises dass Termine keine funktionale Komponente sind
+            MessageBox.Show("Termine sind keine funktionale Komponente von OfficeFlow. Dieser Button trägt nur zur Vollständigkeit der Programmanischt bei.", "Hinweis", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            // Schließen des SettingsWindows
+            // Schließen des Settingswindows
             this.Close();
+        }
+
+        private void ExportTasksToOutlookCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            // Aktivieren oder Deaktivieren des Buttons zum Löschen exportierter Aufgaben
+            if (ExportTasksToOutlookCheckBox.IsChecked == true)
+            {
+                DeleteExportedTasksButton.IsEnabled = false;
+            }
+            else
+            {
+                DeleteExportedTasksButton.IsEnabled = true;
+            }
+        }
+
+        private void ExportAppointmentsToOutlookCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            // Aktivieren oder Deaktivieren des Buttons zum Löschen exportierter Aufgaben
+            if (ExportAppointmentsToOutlookCheckBox.IsChecked == true)
+            {
+                DeleteExportedAppointmentsButton.IsEnabled = false;
+            }
+            else
+            {
+                DeleteExportedAppointmentsButton.IsEnabled = true;
+            }
+
+            // Anzeigen des Hinweises dass Termine keine funktionale Komponente sind
+            MessageBox.Show("Termine sind keine funktionale Komponente von OfficeFlow. Diese Checkbox trägt nur zur Vollständigkeit der Programmanischt bei.", "Hinweis", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

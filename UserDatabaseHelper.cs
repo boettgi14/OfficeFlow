@@ -48,10 +48,10 @@ namespace OfficeFlow
         /// <returns>The number of rows affected by the creation of the "users" table, or -1 if the database already exists.</returns>
         public static int InitializeDatabase()
         {
-            if (!File.Exists("users.db"))
+            if (!File.Exists(_dbFilePath))
             {
                 // Datenbankdatei erstellen und Verbindung öffnen
-                using var connection = new SqliteConnection("Data Source=users.db");
+                using var connection = new SqliteConnection(_connectionString);
                 connection.Open();
 
                 // Create Befehl vorbereiten
@@ -66,17 +66,39 @@ namespace OfficeFlow
                 // Create Befehl ausführen
                 int result = createCommand.ExecuteNonQuery();
 
-                // Erstellen von Standardbenutzer
-                AddUser("admin", "password", true); // Admin Benutzer
-                AddUser("user", "password", false); // Normaler Benutzer
-
-                // Schließen der Verbindung
-                connection.Close();
+                // Erstellen von Standardbenutzer mit Adminrechten
+                AddUser("admin", "password", true);
 
                 // Rückgabe des Ergebnisses
                 return result;
             }
             return -1; // Datenbank existiert bereits
+        }
+
+        /// <summary>
+        /// Deletes the database file if it exists.
+        /// </summary>
+        /// <remarks>This method ensures that all resources are released by triggering garbage collection 
+        /// and clearing all SQLite connection pools before attempting to delete the database file.  If the file does
+        /// not exist, no action is taken.</remarks>
+        /// <returns>An integer indicating the result of the operation:  <see langword="1"/> if the database file was
+        /// successfully deleted;  <see langword="0"/> if the file does not exist.</returns>
+        public static int DeleteDatabase()
+        {
+            // Garbage Collection auslösen um sicherzustellen dass alle Ressourcen freigegeben sind
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            // Schließen aller offenen Verbindungen und Pools
+            SqliteConnection.ClearAllPools();
+
+            if (File.Exists(_dbFilePath))
+            {
+                // Löschen der Datenbankdatei
+                File.Delete(_dbFilePath);
+                return 1; // Erfolgreich gelöscht
+            }
+            return 0; // Datei existiert nicht
         }
 
         /// <summary>
@@ -95,7 +117,7 @@ namespace OfficeFlow
             string passwordHash = PasswordHelper.HashMD5(password);
 
             // Datenbankverbindung öffnen
-            using var connection = new SqliteConnection("Data Source=users.db");
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             // Insert Befehl vorbereiten
@@ -110,11 +132,9 @@ namespace OfficeFlow
             // Insert Befehl ausführen
             int result = insertCommand.ExecuteNonQuery();
 
-            // Schließen der Verbindung
-            connection.Close();
-
             // Rückgabe des Ergebnisses
             return result;
+
         }
 
         /// <summary>
@@ -129,7 +149,7 @@ namespace OfficeFlow
         public static int DeleteUser(string username)
         {
             // Datenbankverbindung öffnen
-            using var connection = new SqliteConnection("Data Source=users.db");
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             // Delete Befehl vorbereiten
@@ -141,9 +161,6 @@ namespace OfficeFlow
 
             // Delete Befehl ausführen
             int result = deleteCommand.ExecuteNonQuery();
-
-            // Schließen der Verbindung
-            connection.Close();
 
             // Rückgabe des Ergebnisses
             return result;
@@ -162,7 +179,7 @@ namespace OfficeFlow
         public static int EditUsername(string oldUsername, string newUsername)
         {
             // Datenbankverbindung öffnen
-            using var connection = new SqliteConnection("Data Source=users.db");
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             // Update Befehl vorbereiten
@@ -176,9 +193,6 @@ namespace OfficeFlow
 
             // Update Befehl ausführen
             int result = updateCommand.ExecuteNonQuery();
-
-            // Schließen der Verbindung
-            connection.Close();
 
             // Rückgabe des Ergebnisses
             return result;
@@ -200,7 +214,7 @@ namespace OfficeFlow
             string passwordHash = PasswordHelper.HashMD5(password);
 
             // Datenbankverbindung öffnen
-            using var connection = new SqliteConnection("Data Source=users.db");
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             // Update Befehl vorbereiten
@@ -214,9 +228,6 @@ namespace OfficeFlow
 
             // Update Befehl ausführen
             int result = updateCommand.ExecuteNonQuery();
-
-            // Schließen der Verbindung
-            connection.Close();
 
             // Rückgabe des Ergebnisses
             return result;
@@ -235,7 +246,7 @@ namespace OfficeFlow
         public static int EditAdminStatus(string username, bool adminStatus)
         {
             // Datenbankverbindung öffnen
-            using var connection = new SqliteConnection("Data Source=users.db");
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             // Update Befehl vorbereiten
@@ -249,9 +260,6 @@ namespace OfficeFlow
 
             // Update Befehl ausführen
             int result = updateCommand.ExecuteNonQuery();
-
-            // Schließen der Verbindung
-            connection.Close();
 
             // Rückgabe des Ergebnisses
             return result;
@@ -269,7 +277,7 @@ namespace OfficeFlow
         public static User? GetUser(string inputUsername)
         {
             // Datenbankverbindung öffnen
-            using var connection = new SqliteConnection("Data Source=users.db");
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             // Select Befehl vorbereiten
@@ -296,9 +304,6 @@ namespace OfficeFlow
                 return new User(id, username, passwordHash, AdminStatus);
             }
 
-            // Schließen der Verbindung
-            connection.Close();
-
             // Fehlerfall gibt null zurück
             return null;
         }
@@ -317,7 +322,7 @@ namespace OfficeFlow
             List<User> users = new List<User>();
 
             // Datenbankverbindung öffnen
-            using var connection = new SqliteConnection("Data Source=users.db");
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             // Select Befehl vorbereiten
@@ -338,9 +343,6 @@ namespace OfficeFlow
                 users.Add(user);
             }
 
-            // Schließen der Verbindung
-            connection.Close();
-
             // Rückgabe der Nutzerliste
             return users;
         }
@@ -358,7 +360,7 @@ namespace OfficeFlow
         public static bool VerifyLogin(string username, string password)
         {
             // Datenbankverbindung öffnen
-            using var connection = new SqliteConnection("Data Source=users.db");
+            using var connection = new SqliteConnection(_connectionString);
             connection.Open();
 
             // Select Befehl vorbereiten
@@ -381,9 +383,6 @@ namespace OfficeFlow
                 // Rückgabe des Vergleichs des Passworts mit dem gespeicherten Hash
                 return PasswordHelper.VerifyMD5(password, storedHash);
             }
-
-            // Schließen der Verbindung
-            connection.Close();
 
             // Fehlerfall gibt false zurück
             return false;

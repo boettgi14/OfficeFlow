@@ -49,10 +49,16 @@ namespace OfficeFlow
             }
             else
             {
-                // Nutzer in Datenbank hinzufügen
-                int result = UserDatabaseHelper.AddUser(username, password1, adminStatus);
+                // Nutzer in Datenbanken hinzufügen
+                int userResult = UserDatabaseHelper.AddUser(username, password1, adminStatus);
+                User? newUser = UserDatabaseHelper.GetUser(username);
+                int settingsResult = 0;
+                if (newUser != null)
+                {
+                    settingsResult = SettingsDatabaseHelper.AddUser(newUser.Id);
+                }
 
-                if (result == 1)
+                if (userResult == 1 && settingsResult == 1)
                 {
                     // Schließen des AddUserWindows
                     this.Close();

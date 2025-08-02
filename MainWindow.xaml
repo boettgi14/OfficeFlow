@@ -17,6 +17,63 @@
         <local:MainViewModel />
     </Window.DataContext>
 
+    <!--  Ressourcen für Aufgaben und Trenner  -->
+    <Window.Resources>
+        <!--  DataTemplate für Aufgaben  -->
+        <DataTemplate x:Key="TaskTemplate" DataType="{x:Type local:Task}">
+            <StackPanel Margin="5" Orientation="Vertical">
+                <StackPanel Orientation="Horizontal">
+                    <CheckBox
+                        Name="IsCompletedCheckBox"
+                        Margin="5"
+                        Checked="IsCompletedCheckBox_Checked"
+                        IsChecked="{Binding IsCompleted, Mode=TwoWay}"
+                        Unchecked="IsCompletedCheckBox_Checked" />
+                    <TextBlock Margin="5" Text="{Binding Name}" />
+                </StackPanel>
+                <TextBlock Margin="5" Text="{Binding Description}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Description}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Margin="5" Text="{Binding DueDate, StringFormat='{}{0:dd.MM.yyyy}'}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DueDate}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </DataTemplate>
+
+        <!--  DataTemplate für Trenner  -->
+        <DataTemplate x:Key="TaskSeparatorTemplate" DataType="{x:Type local:TaskSeparator}">
+            <TextBlock
+                Margin="10,10,10,10"
+                FontSize="14"
+                FontWeight="Bold"
+                Text="{Binding Title}" />
+        </DataTemplate>
+
+        <!--  TemplateSelector für Aufgaben und Trenner  -->
+        <local:TaskTemplateSelector
+            x:Key="TaskTemplateSelector"
+            TaskSeparatorTemplate="{StaticResource TaskSeparatorTemplate}"
+            TaskTemplate="{StaticResource TaskTemplate}" />
+    </Window.Resources>
+
     <!--  Layout  -->
     <Grid>
         <Grid.RowDefinitions>
@@ -42,8 +99,7 @@
                 <MenuItem
                     Name="UserManagementMenuItem"
                     Click="UserManagementMenuItem_Click"
-                    Header="Nutzerverwaltung"
-                    IsEnabled="False" />
+                    Header="Nutzerverwaltung" />
                 <Separator />
                 <MenuItem
                     Name="LogOutMenuItem"
@@ -54,19 +110,14 @@
                     Click="EndProgramMenuItem_Click"
                     Header="_OfficeFlow beenden" />
             </MenuItem>
-            <MenuItem Header="_Zeitmanagement">
-                <MenuItem Header="_TODO" />
-            </MenuItem>
+            <MenuItem Header="_Zeitmanagement" />
             <MenuItem Header="_Termine">
-                <MenuItem Name="AddAppointmentMenuItem" Header="_Hinzufügen" />
                 <MenuItem
-                    Name="EditAppointmentMenuItem"
-                    Header="_Bearbeiten"
-                    IsEnabled="False" />
-                <MenuItem
-                    Name="DeleteAppointmentMenuItem"
-                    Header="_Löschen"
-                    IsEnabled="False" />
+                    Name="AddAppointmentMenuItem"
+                    Click="AddAppointmentMenuItem_Click"
+                    Header="_Hinzufügen" />
+                <MenuItem Name="EditAppointmentMenuItem" Header="_Bearbeiten" />
+                <MenuItem Name="DeleteAppointmentMenuItem" Header="_Löschen" />
             </MenuItem>
             <MenuItem Header="_Aufgaben">
                 <MenuItem
@@ -76,13 +127,24 @@
                 <MenuItem
                     Name="EditTaskMenuItem"
                     Click="EditTaskMenuItem_Click"
-                    Header="_Bearbeiten"
-                    IsEnabled="False" />
+                    Header="_Bearbeiten" />
                 <MenuItem
                     Name="DeleteTaskMenuItem"
                     Click="DeleteTaskMenuItem_Click"
-                    Header="_Löschen"
-                    IsEnabled="False" />
+                    Header="_Löschen" />
+                <Separator />
+                <MenuItem Header="_Aufgaben sortieren nach...">
+                    <MenuItem
+                        Name="OrderTasksByIdMenuItem"
+                        Click="OrderTasksMenuItem_Click"
+                        Header="_Hinzufügedatum"
+                        IsCheckable="True" />
+                    <MenuItem
+                        Name="OrderTasksByDateMenuItem"
+                        Click="OrderTasksMenuItem_Click"
+                        Header="_Fälligkeitsdatum"
+                        IsCheckable="True" />
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Hilfe">
                 <MenuItem
@@ -116,37 +178,37 @@
                 Columns="7"
                 Rows="1">
                 <TextBlock
-                    FontSize="14"
+                    FontSize="18"
                     FontWeight="Bold"
                     Text="Montag"
                     TextAlignment="Center" />
                 <TextBlock
-                    FontSize="14"
+                    FontSize="18"
                     FontWeight="Bold"
                     Text="Dienstag"
                     TextAlignment="Center" />
                 <TextBlock
-                    FontSize="14"
+                    FontSize="18"
                     FontWeight="Bold"
                     Text="Mittwoch"
                     TextAlignment="Center" />
                 <TextBlock
-                    FontSize="14"
+                    FontSize="18"
                     FontWeight="Bold"
                     Text="Donnerstag"
                     TextAlignment="Center" />
                 <TextBlock
-                    FontSize="14"
+                    FontSize="18"
                     FontWeight="Bold"
                     Text="Freitag"
                     TextAlignment="Center" />
                 <TextBlock
-                    FontSize="14"
+                    FontSize="18"
                     FontWeight="Bold"
                     Text="Samstag"
                     TextAlignment="Center" />
                 <TextBlock
-                    FontSize="14"
+                    FontSize="18"
                     FontWeight="Bold"
                     Text="Sonntag"
                     TextAlignment="Center" />
@@ -161,59 +223,31 @@
                 <Border
                     Padding="5"
                     BorderBrush="Gray"
-                    BorderThickness="1">
-                    <StackPanel>
-                        <TextBlock Text="Termin..." />
-                    </StackPanel>
-                </Border>
+                    BorderThickness="1" />
                 <Border
                     Padding="5"
                     BorderBrush="Gray"
-                    BorderThickness="1">
-                    <StackPanel>
-                        <TextBlock Text="Termin..." />
-                    </StackPanel>
-                </Border>
+                    BorderThickness="1" />
                 <Border
                     Padding="5"
                     BorderBrush="Gray"
-                    BorderThickness="1">
-                    <StackPanel>
-                        <TextBlock Text="Termin..." />
-                    </StackPanel>
-                </Border>
+                    BorderThickness="1" />
                 <Border
                     Padding="5"
                     BorderBrush="Gray"
-                    BorderThickness="1">
-                    <StackPanel>
-                        <TextBlock Text="Termin..." />
-                    </StackPanel>
-                </Border>
+                    BorderThickness="1" />
                 <Border
                     Padding="5"
                     BorderBrush="Gray"
-                    BorderThickness="1">
-                    <StackPanel>
-                        <TextBlock Text="Termin..." />
-                    </StackPanel>
-                </Border>
+                    BorderThickness="1" />
                 <Border
                     Padding="5"
                     BorderBrush="Gray"
-                    BorderThickness="1">
-                    <StackPanel>
-                        <TextBlock Text="Termin..." />
-                    </StackPanel>
-                </Border>
+                    BorderThickness="1" />
                 <Border
                     Padding="5"
                     BorderBrush="Gray"
-                    BorderThickness="1">
-                    <StackPanel>
-                        <TextBlock Text="Termin..." />
-                    </StackPanel>
-                </Border>
+                    BorderThickness="1" />
             </UniformGrid>
         </Grid>
 
@@ -245,56 +279,11 @@
                 Padding="5"
                 BorderBrush="Gray"
                 BorderThickness="1"
-                ItemsSource="{Binding Tasks}"
+                ItemTemplateSelector="{StaticResource TaskTemplateSelector}"
+                ItemsSource="{Binding AllTasks}"
                 KeyDown="TasksListBox_KeyDown"
-                SelectionChanged="TasksListBox_SelectionChanged">
-                <ListBox.ItemTemplate>
-                    <!--  Datenvorlage für Aufgaben hinzufügen  -->
-                    <DataTemplate DataType="{x:Type local:Task}">
-                        <StackPanel Margin="5" Orientation="Vertical">
-                            <StackPanel Orientation="Horizontal">
-                                <!--  Erledigt  -->
-                                <CheckBox
-                                    Name="IsCompletedCheckBox"
-                                    Margin="5"
-                                    Checked="IsCompletedCheckBox_Checked"
-                                    IsChecked="{Binding IsCompleted, Mode=TwoWay}"
-                                    Unchecked="IsCompletedCheckBox_Checked" />
-                                <!--  Name  -->
-                                <TextBlock Margin="5" Text="{Binding Name}" />
-                            </StackPanel>
-                            <!--  Beschreibung  -->
-                            <TextBlock Margin="5" Text="{Binding Description}">
-                                <!--  Verstecken bei null  -->
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Description}" Value="{x:Null}">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                            <!--  Fälligkeitsdatum  -->
-                            <TextBlock Margin="5" Text="{Binding DueDate, StringFormat='{}{0:dd.MM.yyyy}'}">
-                                <!--  Verstecken bei null  -->
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding DueDate}" Value="{x:Null}">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                SelectionChanged="TasksListBox_SelectionChanged" />
+
         </Grid>
     </Grid>
 </Window>

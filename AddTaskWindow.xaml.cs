@@ -19,9 +19,21 @@ namespace OfficeFlow
     /// </summary>
     public partial class AddTaskWindow : Window
     {
-        public AddTaskWindow()
+        /// <summary>
+        /// Represents the currently logged-in user.
+        /// </summary>
+        /// <remarks>This field holds the user information for the active session.  It is intended for
+        /// internal use and should not be accessed directly outside of the class.</remarks>
+        private User CurrentUser;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddTaskWindow"/> class with the specified user.
+        /// </summary>
+        /// <param name="user">The user for whom the task window is being created. This parameter cannot be null.</param>
+        public AddTaskWindow(User user)
         {
             InitializeComponent();
+            CurrentUser = user;
         }
 
         private void SafeButton_Click(object sender, RoutedEventArgs e)
@@ -41,7 +53,7 @@ namespace OfficeFlow
             else
             {
                 // Aufgabe in Datenbank hinzufügen
-                int result = TaskDatabaseHelper.AddTask(name, description, dueDate);
+                int result = TaskDatabaseHelper.AddTask(CurrentUser.Id, name, description, dueDate);
 
                 if (result == 1)
                 {

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Effects;
 using System.Xml.Linq;
 
 namespace OfficeFlow
@@ -42,22 +43,14 @@ namespace OfficeFlow
         private static readonly string _connectionString = $"Data Source={_dbFilePath};";
 
         /// <summary>
-        /// Initializes the database by creating a new SQLite database file and a "tasks" table if it does not already
-        /// exist.
+        /// Initializes the database by creating the required schema if the database file does not already exist.
         /// </summary>
-        /// <remarks>This method checks for the existence of a database file. If the file
-        /// does not exist, it creates the file, establishes a connection, and executes a SQL command to create a
-        /// "tasks" table with the following schema: <list type="bullet"> <item><description><c>id</c>: An
-        /// auto-incrementing primary key.</description></item> <item><description><c>name</c>: A non-null text field
-        /// for the task name.</description></item> <item><description><c>is_completed</c>: A non-null boolean field
-        /// indicating whether the task is completed.</description></item> <item><description><c>description</c>: An
-        /// optional text field for additional task details.</description></item> <item><description><c>due_date</c>: An
-        /// optional date field for the task's due date.</description></item> </list> If the database file already
-        /// exists, the method does nothing and returns -1.</remarks>
-        /// <returns>An integer indicating the result of the database initialization: <list type="bullet"> <item><description>A
-        /// non-negative value representing the number of rows affected by the table creation command if the database
-        /// was initialized successfully.</description></item> <item><description><c>-1</c> if the database file already
-        /// exists and no action was taken.</description></item> </list></returns>
+        /// <remarks>This method checks for the existence of the database file at the specified path. If
+        /// the file does not exist, it creates a new SQLite database and defines the schema for a "tasks" table. The
+        /// table includes columns for task details such as ID, user ID, name, completion status, internal status,
+        /// description, and due date.</remarks>
+        /// <returns>The number of rows affected by the schema creation command if the database is initialized successfully;
+        /// otherwise, -1 if the database file already exists.</returns>
         public static int InitializeDatabase()
         {
             if (!File.Exists(_dbFilePath))
@@ -71,6 +64,7 @@ namespace OfficeFlow
                 createCommand.CommandText = @"
                     CREATE TABLE tasks (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
                     name TEXT NOT NULL,
                     is_completed BOOLEAN NOT NULL,
                     description TEXT,
@@ -79,9 +73,6 @@ namespace OfficeFlow
                 // Create Befehl ausführen
                 int result = createCommand.ExecuteNonQuery();
 
-                // Schließen der Verbindung
-                connection.Close();
-
                 // Rückgabe des Ergebnisses
                 return result;
             }
@@ -89,15 +80,16 @@ namespace OfficeFlow
         }
 
         /// <summary>
-        /// Adds a new task to the database with the specified name, description, and due date.
+        /// Adds a new task to the database for the specified user.
         /// </summary>
-        /// <remarks>This method inserts a new task into the database with the specified details. The task
-        /// is initially marked as not completed.</remarks>
-        /// <param name="name">The name of the task. This value cannot be null or empty.</param>
-        /// <param name="description">An optional description of the task. If null, the description will be stored as null in the database.</param>
-        /// <param name="dueDate">An optional due date for the task. If null, no due date will be set.</param>
+        /// <remarks>The task is initially marked as incomplete and is flagged as internal. Ensure that
+        /// the database connection string is properly configured before calling this method.</remarks>
+        /// <param name="userId">The ID of the user to whom the task belongs. Must be a valid user ID.</param>
+        /// <param name="name">The name of the task. Cannot be null or empty.</param>
+        /// <param name="description">An optional description of the task. If null, no description will be stored.</param>
+        /// <param name="dueDate">An optional due date for the task. If null, no due date will be stored.</param>
         /// <returns>The number of rows affected by the operation. Typically, this will be 1 if the task is successfully added.</returns>
-        public static int AddTask(string name, string? description, DateOnly? dueDate)
+        public static int AddTask(int userId, string name, string? description, DateOnly? dueDate)
         {
             // Datenbankverbindung öffnen
             using var connection = new SqliteConnection(_connectionString);
@@ -106,10 +98,11 @@ namespace OfficeFlow
             // Insert Befehl vorbereiten
             var insertCommand = connection.CreateCommand();
             insertCommand.CommandText = @"
-                INSERT INTO tasks (name, is_completed, description, due_date)
-                VALUES ($name, $isCompleted, $description, $dueDate);";
+                INSERT INTO tasks (user_id, name, is_completed, description, due_date)
+                VALUES ($userId, $name, $isCompleted, $description, $dueDate);";
 
             // Parameter hinzufügen
+            insertCommand.Parameters.AddWithValue("$userId", userId);
             insertCommand.Parameters.AddWithValue("$name", name);
             insertCommand.Parameters.AddWithValue("$isCompleted", false);
             insertCommand.Parameters.AddWithValue("$description", description ?? (object)DBNull.Value);
@@ -117,9 +110,6 @@ namespace OfficeFlow
 
             // Insert Befehl ausführen
             int result = insertCommand.ExecuteNonQuery();
-
-            // Schließen der Verbindung
-            connection.Close();
 
             // Rückgabe des Ergebnisses
             return result;
@@ -152,9 +142,20 @@ namespace OfficeFlow
             // Select Befehl ausführen
             int result = insertCommand.ExecuteNonQuery();
 
-            // Schließen der Verbindung
-            connection.Close();
+            // Rückgabe des Ergebnisses
+            return result;
+        }
 
+        public static int DeleteAllTasks(int userId)
+        {
+            int result = 0;
+            // Holen aller Aufgaben für den Nutzer
+            List<Task> tasks = GetAllTasks(userId);
+            foreach (Task task in tasks)
+            {
+                // Löschen der Aufgabe aus der Datenbank und Überprüfen des Ergebnisses
+                result = DeleteTask(task.Id) == 1 ? 1 : 0;
+            }
             // Rückgabe des Ergebnisses
             return result;
         }
@@ -187,9 +188,6 @@ namespace OfficeFlow
 
             // Update Befehl ausführen
             int result = updateCommand.ExecuteNonQuery();
-
-            // Schließen der Verbindung
-            connection.Close();
 
             // Rückgabe des Ergebnisses
             return result;
@@ -224,9 +222,6 @@ namespace OfficeFlow
             // Update Befehl ausführen
             int result = updateCommand.ExecuteNonQuery();
 
-            // Schließen der Verbindung
-            connection.Close();
-
             // Rückgabe des Ergebnisses
             return result;
         }
@@ -258,9 +253,6 @@ namespace OfficeFlow
 
             // Update Befehl ausführen
             int result = updateCommand.ExecuteNonQuery();
-
-            // Schließen der Verbindung
-            connection.Close();
 
             // Rückgabe des Ergebnisses
             return result;
@@ -295,9 +287,6 @@ namespace OfficeFlow
 
             // Update Befehl ausführen
             int result = updateCommand.ExecuteNonQuery();
-
-            // Schließen der Verbindung
-            connection.Close();
 
             // Rückgabe des Ergebnisses
             return result;
@@ -334,10 +323,11 @@ namespace OfficeFlow
             {
                 // Ergebnisse auslesen
                 int id = reader.GetInt32(0);
-                string name = reader.GetString(1);
-                bool isCompleted = reader.GetBoolean(2);
-                string? description = reader.IsDBNull(3) ? null : reader.GetString(3);
-                DateOnly? dueDate = reader.IsDBNull(4) ? null : DateOnly.FromDateTime(reader.GetDateTime(4));
+                int userId = reader.GetInt32(1);
+                string name = reader.GetString(2);
+                bool isCompleted = reader.GetBoolean(3);
+                string? description = reader.IsDBNull(4) ? null : reader.GetString(4);
+                DateOnly? dueDate = reader.IsDBNull(5) ? null : DateOnly.FromDateTime(reader.GetDateTime(5));
 
                 // Schließen der Verbindung
                 connection.Close();
@@ -345,9 +335,6 @@ namespace OfficeFlow
                 // Rückgabe des Tasks aus Ergebnissen
                 return new Task(id, name, isCompleted, description, dueDate);
             }
-
-            // Schließen der Verbindung
-            connection.Close();
 
             // Fehlerfall gibt null zurück
             return null;
@@ -361,7 +348,7 @@ namespace OfficeFlow
         /// status, optional description, and optional due date.</remarks>
         /// <returns>A list of <see cref="Task"/> objects representing all tasks in the database.  The list will be empty if no
         /// tasks are found.</returns>
-        public static List<Task> GetAllTasks()
+        public static List<Task> GetAllTasks(int inputUserId)
         {
             // Initalisieren der Aufgabenliste
             List<Task> tasks = new List<Task>();
@@ -372,7 +359,11 @@ namespace OfficeFlow
 
             // Select Befehl vorbereiten
             var command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM tasks;";
+            command.CommandText = @"SELECT * FROM tasks
+                WHERE user_id = $inputUserId;";
+
+            // Parameter hinzufügen
+            command.Parameters.AddWithValue("$inputUserId", inputUserId);
 
             // Select Befehl ausführen
             using var reader = command.ExecuteReader();
@@ -380,17 +371,15 @@ namespace OfficeFlow
             {
                 // Auslesen der Ergebnisse
                 int id = reader.GetInt32(0);
-                string name = reader.GetString(1);
-                bool isCompleted = reader.GetBoolean(2);
-                string? description = reader.IsDBNull(3) ? null : reader.GetString(3);
-                DateOnly? dueDate = reader.IsDBNull(4) ? null : DateOnly.FromDateTime(reader.GetDateTime(4));
+                int userId = reader.GetInt32(1);
+                string name = reader.GetString(2);
+                bool isCompleted = reader.GetBoolean(3);
+                string? description = reader.IsDBNull(4) ? null : reader.GetString(4);
+                DateOnly? dueDate = reader.IsDBNull(5) ? null : DateOnly.FromDateTime(reader.GetDateTime(5));
 
                 Task task = new Task(id, name, isCompleted, description, dueDate);
                 tasks.Add(task);
             }
-
-            // Schließen der Verbindung
-            connection.Close();
 
             // Rückgabe der Nutzerliste
             return tasks;
