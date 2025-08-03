@@ -29,25 +29,35 @@ namespace OfficeFlow
         /// Gets or sets the collection of all tasks.
         /// </summary>
         public ObservableCollection<ITaskItem> AllTasks { get; set; } = new();
-        /// <summary>
-        /// Gets or sets a value indicating whether the results should be ordered by date.
-        /// </summary>
-        bool OrderTasksByDate { get; set; } = false;
 
         /// <summary>
-        /// Updates the task lists by categorizing tasks into completed and incomplete groups.
+        /// Updates the task lists for the specified user, including incomplete, complete, and all tasks.
         /// </summary>
-        /// <remarks>This method clears the existing task lists and retrieves all tasks from the database.
-        /// It then populates the <see cref="InCompleteTasks"/> list with tasks that are not completed and the <see
-        /// cref="CompleteTasks"/> list with tasks that are completed.</remarks>
+        /// <remarks>This method retrieves the user's task-related settings, such as whether tasks should
+        /// be exported to Outlook  and the preferred task sorting order. If Outlook export is enabled, it imports any
+        /// external changes from Outlook. The method then clears the existing task lists and repopulates them based on
+        /// the user's tasks retrieved from the database. Tasks are sorted either by due date or by their default order,
+        /// depending on the user's settings.</remarks>
+        /// <param name="userId">The unique identifier of the user whose tasks are being updated.</param>
         public void UpdateTasksListBox(int userId)
         {
+            // Holen der Einstellungen des Nutzers
+            bool exportTasksToOutlook = SettingsDatabaseHelper.GetExportTasksToOutlook(userId);
+            string orderTasksBy = SettingsDatabaseHelper.GetOrderTasksBy(userId);
+
+            // Überprüfen ob die Einstellungen für den Export nach Outlook gesetzt sind
+            if (exportTasksToOutlook)
+            {
+                // Importieren von externen Änderungen durch Outlook
+                OutlookHelper.ImportAllTasks(userId);
+            }
+
             // Löschen aller Taskisten
             InCompleteTasks.Clear();
             CompleteTasks.Clear();
             AllTasks.Clear();
 
-            if (OrderTasksByDate)
+            if (orderTasksBy == "date")
             {
                 // Sortierung nach Fälligkeitsdatum
                 // Alle Tasks aus der Datenbank holen
@@ -134,31 +144,6 @@ namespace OfficeFlow
                 {
                     AllTasks.Add(task);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Sets the sorting order based on the specified input.
-        /// </summary>
-        /// <param name="input">A string indicating the sorting criterion. Valid values are <see langword="date"/> or <see langword="id"/> 
-        /// (case-insensitive).</param>
-        /// <exception cref="ArgumentException">Thrown if <paramref name="input"/> is not a valid sorting option.</exception>
-        public void OrderTasksBy(string input)
-        {
-            if (input == "date")
-            {
-                // Sortierung nach Fälligkeitsdatum
-                OrderTasksByDate = true;
-            }
-            else if (input == "id")
-            {
-                // Sortierung nach Id
-                OrderTasksByDate = false;
-            }
-            else
-            {
-                // Ungültige Sortieroption
-                throw new ArgumentException("Ungültige Sortieroption: " + input);
             }
         }
     }

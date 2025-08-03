@@ -52,7 +52,7 @@ namespace OfficeFlow
                     CREATE TABLE settings (
                     user_id INTEGER PRIMARY KEY,
                     order_tasks_by STRING NOT NULL DEFAULT 'id',
-                    export_tasks_to_outlook);";
+                    export_tasks_to_outlook BOOLEAN NOT NULL DEFAULT false);";
 
                 // Create Befehl ausführen
                 int result = createCommand.ExecuteNonQuery();
@@ -173,7 +173,16 @@ namespace OfficeFlow
             }
         }
 
-        public static string GetOrderBy(int userId)
+        /// <summary>
+        /// Retrieves the order preference for tasks associated with the specified user.
+        /// </summary>
+        /// <remarks>This method queries the database to retrieve the task order preference stored in the
+        /// settings table  for the given user. Ensure that the database connection string is properly configured before
+        /// calling this method.</remarks>
+        /// <param name="userId">The unique identifier of the user whose task order preference is being retrieved.</param>
+        /// <returns>A string representing the user's task order preference.  Returns an empty string if no preference is found
+        /// for the specified user.</returns>
+        public static string GetOrderTasksBy(int userId)
         {
             // Verbindung zur Datenbank herstellen
             using var connection = new SqliteConnection(_connectionString);
@@ -192,7 +201,18 @@ namespace OfficeFlow
             return (string)(result != null ? result : "");
         }
 
-        public static int SetOrderBy(int userId, string orderTasksBy)
+        /// <summary>
+        /// Updates the task ordering preference for a specific user in the database.
+        /// </summary>
+        /// <remarks>This method updates the `order_tasks_by` column in the `settings` table for the
+        /// specified user.  Ensure that the provided <paramref name="userId"/> exists in the database and that
+        /// <paramref name="orderTasksBy"/>  contains a valid ordering criterion.</remarks>
+        /// <param name="userId">The unique identifier of the user whose task ordering preference is being updated.</param>
+        /// <param name="orderTasksBy">The new task ordering preference to be set. This value is typically a string representing the desired order,
+        /// such as "date", "priority", or another valid ordering criterion.</param>
+        /// <returns>The number of rows affected by the update operation. A return value of 1 indicates that the update was
+        /// successful,  while 0 indicates that no matching user was found.</returns>
+        public static int SetOrderTasksBy(int userId, string orderTasksBy)
         {
             // Verbindung zur Datenbank herstellen
             using var connection = new SqliteConnection(_connectionString);
@@ -205,6 +225,66 @@ namespace OfficeFlow
                 WHERE user_id = $userId;";
             insertCommand.Parameters.AddWithValue("$userId", userId);
             insertCommand.Parameters.AddWithValue("$orderTasksBy", orderTasksBy);
+
+            // Insert Befehl ausführen
+            int result = insertCommand.ExecuteNonQuery();
+
+            // Rückgabe des Ergebnisses
+            return result;
+        }
+
+        /// <summary>
+        /// Determines whether the user has enabled the option to export tasks to Outlook.
+        /// </summary>
+        /// <remarks>This method retrieves the user's preference for exporting tasks to Outlook from the
+        /// database. If no preference is found for the specified user, the method returns <see
+        /// langword="false"/>.</remarks>
+        /// <param name="userId">The unique identifier of the user whose settings are being queried.</param>
+        /// <returns><see langword="true"/> if the user has enabled the export to Outlook option;  otherwise, <see
+        /// langword="false"/>.</returns>
+        public static bool GetExportTasksToOutlook(int userId)
+        {
+            // Verbindung zur Datenbank herstellen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Select Befehl vorbereiten
+            var selectCommand = connection.CreateCommand();
+            selectCommand.CommandText = @"
+                SELECT export_tasks_to_outlook FROM settings WHERE user_id = $userId;";
+            selectCommand.Parameters.AddWithValue("$userId", userId);
+
+            // Select Befehl ausführen und Ergebnis abrufen
+            var result = selectCommand.ExecuteScalar();
+
+            // Rückgabe des Ergebnisses oder Standardwert
+            return result is long longValue && longValue != 0;
+        }
+
+        /// <summary>
+        /// Updates the user's preference for exporting tasks to Outlook in the database.
+        /// </summary>
+        /// <remarks>This method updates the `export_tasks_to_outlook` field in the `settings` table for
+        /// the specified user. Ensure that the database connection string is properly configured before calling this
+        /// method.</remarks>
+        /// <param name="userId">The unique identifier of the user whose preference is being updated.</param>
+        /// <param name="exportToOutlook">A boolean value indicating whether the user wants to enable (<see langword="true"/>) or disable (<see
+        /// langword="false"/>) task export to Outlook.</param>
+        /// <returns>The number of rows affected by the update operation. A value of 1 indicates that the update was successful,
+        /// while 0 indicates that no matching user was found.</returns>
+        public static int SetExportTasksToOutlook(int userId, bool exportToOutlook)
+        {
+            // Verbindung zur Datenbank herstellen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Insert Befehl vorbereiten
+            var insertCommand = connection.CreateCommand();
+            insertCommand.CommandText = @"
+                UPDATE settings SET export_tasks_to_outlook = $exportToOutlook
+                WHERE user_id = $userId;";
+            insertCommand.Parameters.AddWithValue("$userId", userId);
+            insertCommand.Parameters.AddWithValue("$exportToOutlook", exportToOutlook);
 
             // Insert Befehl ausführen
             int result = insertCommand.ExecuteNonQuery();

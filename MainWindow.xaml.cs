@@ -10,6 +10,11 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+/*
+ * TODO
+ * - Aktualisierungsbutton einbauen (Aktualisiert die Tasklisten und die Einstellungen des Nutzers)
+ */
+
 namespace OfficeFlow
 {
     /// <summary>
@@ -38,6 +43,9 @@ namespace OfficeFlow
 
             CurrentUser = user;
 
+            // Setzen der UI auf Adminstatus des Nutzers
+            setAdminStatus(CurrentUser);
+
             // Setzen der UI auf Einstellungen des Nutzers
             setSettings(CurrentUser);
 
@@ -47,9 +55,6 @@ namespace OfficeFlow
 
             // Updaten der Aufgabenliste im ViewModel
             ViewModel.UpdateTasksListBox(CurrentUser.Id);
-
-            // Setzen der UI auf Adminstatus des Benutzers
-            setAdminStatus(CurrentUser);
         }
 
         /// <summary>
@@ -63,18 +68,16 @@ namespace OfficeFlow
         private void setSettings(User user)
         {
             // Sortierung der Aufgabenliste
-            string orderTasksBy = SettingsDatabaseHelper.GetOrderBy(CurrentUser.Id);
+            string orderTasksBy = SettingsDatabaseHelper.GetOrderTasksBy(CurrentUser.Id);
             if (orderTasksBy == "date")
             {
                 // Sortieren nach Fälligkeitsdatum
-                ViewModel.OrderTasksBy("date");
                 OrderTasksByIdMenuItem.IsChecked = false;
                 OrderTasksByDateMenuItem.IsChecked = true;
             }
             else
             {
                 // Standardmäßig nach Id sortieren
-                ViewModel.OrderTasksBy("id");
                 OrderTasksByIdMenuItem.IsChecked = true;
                 OrderTasksByDateMenuItem.IsChecked = false;
             }
@@ -347,18 +350,16 @@ namespace OfficeFlow
                 // Sortieren der Aufgaben nach Id
                 OrderTasksByIdMenuItem.IsChecked = true;
                 OrderTasksByDateMenuItem.IsChecked = false;
-                ViewModel.OrderTasksBy("id");
+                result = SettingsDatabaseHelper.SetOrderTasksBy(CurrentUser.Id, "id");
                 ViewModel.UpdateTasksListBox(CurrentUser.Id);
-                result = SettingsDatabaseHelper.SetOrderBy(CurrentUser.Id, "id");
             }
             else if (sender == OrderTasksByDateMenuItem)
             {
                 // Sortieren der Aufgaben nach Fälligkeitsdatum
                 OrderTasksByIdMenuItem.IsChecked = false;
                 OrderTasksByDateMenuItem.IsChecked = true;
-                ViewModel.OrderTasksBy("date");
+                result = SettingsDatabaseHelper.SetOrderTasksBy(CurrentUser.Id, "date");
                 ViewModel.UpdateTasksListBox(CurrentUser.Id);
-                result = SettingsDatabaseHelper.SetOrderBy(CurrentUser.Id, "date");
             }
             if (result != 1)
             {
@@ -373,6 +374,12 @@ namespace OfficeFlow
             AddAppointmentWindow addAppointmentWindow = new AddAppointmentWindow();
             addAppointmentWindow.Owner = this; // Besitzer auf MainWindow setzen
             addAppointmentWindow.ShowDialog();
+        }
+
+        private void RefreshMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Aktualisieren der Aufgabenliste im ViewModel
+            ViewModel.UpdateTasksListBox(CurrentUser.Id);
         }
     }
 }

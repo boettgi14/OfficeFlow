@@ -93,6 +93,11 @@
         <Menu Grid.ColumnSpan="2">
             <MenuItem Header="_Menü">
                 <MenuItem
+                    Name="RefreshMenuItem"
+                    Click="RefreshMenuItem_Click"
+                    Header="_Ansicht aktualisieren" />
+                <Separator />
+                <MenuItem
                     Name="SettingsMenuItem"
                     Click="SettingsMenuItem_Click"
                     Header="_Einstellungen" />

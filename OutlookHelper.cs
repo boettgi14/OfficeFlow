@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.Office.Interop.Outlook;
 using Microsoft.VisualBasic;
 
+/*
+ * TODO
+ * - Leeren Datumswert bei Import aus Outlook fixen
+ */
+
 namespace OfficeFlow
 {
     class OutlookHelper
@@ -48,7 +53,10 @@ namespace OfficeFlow
             {
                 outlookTask.Body = description + "\n\n" + _watermark;
             }
-            outlookTask.DueDate = dueDate.Value.ToDateTime(TimeOnly.MaxValue);
+            if (dueDate != null)
+            {
+                outlookTask.DueDate = dueDate.Value.ToDateTime(TimeOnly.MinValue);
+            }
             if (isCompleted)
             {
                 outlookTask.Status = OlTaskStatus.olTaskComplete;
@@ -121,8 +129,15 @@ namespace OfficeFlow
             // Umwandeln der Outlook Aufgaben in interne Aufgaben
             foreach (TaskItem importedOutlookTask in importedOutlookTasks)
             {
+                // Entfernen des Wasserzeichens aus der Beschreibung
+                string description = importedOutlookTask.Body.Replace(_watermark, "").Trim();
+                if (description == "")
+                {
+                    // Setzen auf null wenn die Beschreibung leer ist
+                    description = null;
+                }
                 // Hinzufügen der Aufgabe zur internen Datenbank
-                TaskDatabaseHelper.AddTask(userId, importedOutlookTask.Subject, importedOutlookTask.Body, DateOnly.FromDateTime(importedOutlookTask.DueDate));
+                TaskDatabaseHelper.AddTask(userId, importedOutlookTask.Subject, description, DateOnly.FromDateTime(importedOutlookTask.DueDate));
             }
         }
 

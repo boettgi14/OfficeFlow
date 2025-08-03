@@ -14,9 +14,7 @@ using System.Windows.Shapes;
 
 /*
  * TODO
- * - Export von Aufgaben nach Outlook einbauen
- *      (Änderung registrieren, Outlook importieren, Änderung speichern, Outlook löschen, Outlook exportieren)
- *      (Aktualisierung registrieren, Outlook importieren, Aktualisierung durchführen)
+ * - Export von Aufgaben nach Outlook einbauen (Änderung registrieren, Outlook importieren, Änderung speichern, Outlook löschen, Outlook exportieren)
  */
 
 namespace OfficeFlow
@@ -39,6 +37,11 @@ namespace OfficeFlow
         {
             InitializeComponent();
             CurrentUser = user;
+
+            // Setzen der Checkboxen für die Einstellungen des Nutzers
+            ExportTasksToOutlookCheckBox.IsChecked = SettingsDatabaseHelper.GetExportTasksToOutlook(CurrentUser.Id);
+            // Setzen des Buttons zum Löschen exportierter Aufgaben
+            DeleteExportedTasksButton.IsEnabled = !ExportTasksToOutlookCheckBox.IsChecked.Value;
         }
 
         private void ResetSettingsButton_Click(object sender, RoutedEventArgs e)
@@ -96,10 +99,18 @@ namespace OfficeFlow
             if (ExportTasksToOutlookCheckBox.IsChecked == true)
             {
                 DeleteExportedTasksButton.IsEnabled = false;
+                SettingsDatabaseHelper.SetExportTasksToOutlook(CurrentUser.Id, true);
+                // Löschen aller exportierten Aufgaben aus Outlook
+                OutlookHelper.DeleteAllExportedTasks();
+                // Holen der Aufgaben des Nutzers aus der Datenbank
+                List<Task> tasks = TaskDatabaseHelper.GetAllTasks(CurrentUser.Id);
+                // Exportieren der Aufgaben nach Outlook
+                OutlookHelper.ExportTasks(tasks);
             }
             else
             {
                 DeleteExportedTasksButton.IsEnabled = true;
+                SettingsDatabaseHelper.SetExportTasksToOutlook(CurrentUser.Id, false);
             }
         }
 
