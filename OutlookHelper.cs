@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Office.Interop.Outlook;
 using Microsoft.VisualBasic;
-
-/*
- * TODO
- * - Leeren Datumswert bei Import aus Outlook fixen
- */
 
 namespace OfficeFlow
 {
@@ -93,13 +89,35 @@ namespace OfficeFlow
         }
 
         /// <summary>
-        /// Imports all tasks from the default Outlook Tasks folder into the internal task database.
+        /// Exports all tasks associated with the specified user to Outlook.
         /// </summary>
-        /// <remarks>This method retrieves all tasks from the default Outlook Tasks folder that do not
-        /// contain a specific watermark in their body. These tasks are then converted into internal task
-        /// representations and added to the internal task database. Tasks containing the watermark are ignored. <para>
-        /// The method interacts with the Outlook application and requires that Outlook is installed and properly
-        /// configured on the system. It accesses the MAPI namespace to retrieve tasks. </para></remarks>
+        /// <remarks>This method performs the following steps: <list type="bullet">
+        /// <item><description>Deletes all previously exported tasks from Outlook.</description></item>
+        /// <item><description>Retrieves all tasks for the specified user from the database.</description></item>
+        /// <item><description>Exports the retrieved tasks to Outlook.</description></item> </list> Ensure that the user
+        /// ID provided is valid and corresponds to an existing user in the system.</remarks>
+        /// <param name="userId">The unique identifier of the user whose tasks will be exported.</param>
+        public static void ExportAllTasks(int userId)
+        {
+            // Löschen aller exportierten Aufgaben aus Outlook
+            DeleteAllExportedTasks();
+            // Holen aller Aufgaben des Benutzers aus der Datenbank
+            List<Task> tasks = TaskDatabaseHelper.GetAllTasks(userId);
+            // Exportieren aller Aufgaben nach Outlook
+            ExportTasks(tasks);
+        }
+
+        /// <summary>
+        /// Imports all tasks from the user's Outlook task folder into the internal database.
+        /// </summary>
+        /// <remarks>This method retrieves all tasks from the user's default Outlook task folder, filters
+        /// them based on a specific watermark,  and imports them into the internal database. Any existing tasks in the
+        /// internal database for the specified user are deleted  before the import. Tasks with the watermark in their
+        /// body are processed, and their details are converted into the internal  task format. The watermark is removed
+        /// from the task description during the import process.  The method assumes that the Outlook application is
+        /// installed and accessible on the system where this code is executed.  It also assumes that the user has
+        /// access to their Outlook task folder.</remarks>
+        /// <param name="userId">The unique identifier of the user for whom the tasks are being imported.</param>
         public static void ImportAllTasks(int userId)
         {
             // Erstellen einer neuen Outlookanwendung
@@ -129,15 +147,24 @@ namespace OfficeFlow
             // Umwandeln der Outlook Aufgaben in interne Aufgaben
             foreach (TaskItem importedOutlookTask in importedOutlookTasks)
             {
+                // Holen des Erledigt Status der Aufgabe
+                bool isCompleted = importedOutlookTask.Status == OlTaskStatus.olTaskComplete;
                 // Entfernen des Wasserzeichens aus der Beschreibung
-                string description = importedOutlookTask.Body.Replace(_watermark, "").Trim();
+                string? description = importedOutlookTask.Body.Replace(_watermark, "").Trim();
                 if (description == "")
                 {
                     // Setzen auf null wenn die Beschreibung leer ist
                     description = null;
                 }
+                // Konvertieren des Fälligkeitsdatums von Outlook in DateOnly
+                DateOnly? dueDate = DateOnly.FromDateTime(importedOutlookTask.DueDate);
+                if (dueDate == DateOnly.Parse("01.01.4501"))
+                {
+                    // Setzen auf null wenn das Fälligkeitsdatum nicht gesetzt ist
+                    dueDate = null;
+                }
                 // Hinzufügen der Aufgabe zur internen Datenbank
-                TaskDatabaseHelper.AddTask(userId, importedOutlookTask.Subject, description, DateOnly.FromDateTime(importedOutlookTask.DueDate));
+                TaskDatabaseHelper.AddTask(userId, importedOutlookTask.Subject, isCompleted, description, dueDate);
             }
         }
 

@@ -80,16 +80,45 @@ namespace OfficeFlow
         }
 
         /// <summary>
+        /// Deletes the database file if it exists.
+        /// </summary>
+        /// <remarks>This method ensures that all resources are released by triggering garbage collection 
+        /// and clearing all SQLite connection pools before attempting to delete the database file.  If the file does
+        /// not exist, no action is taken.</remarks>
+        /// <returns>An integer indicating the result of the operation:  <see langword="1"/> if the database file was
+        /// successfully deleted;  <see langword="0"/> if the file does not exist.</returns>
+        public static int DeleteDatabase()
+        {
+            // Garbage Collection auslösen um sicherzustellen dass alle Ressourcen freigegeben sind
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            // Schließen aller offenen Verbindungen und Pools
+            SqliteConnection.ClearAllPools();
+
+            if (File.Exists(_dbFilePath))
+            {
+                // Löschen der Datenbankdatei
+                File.Delete(_dbFilePath);
+                return 1; // Erfolgreich gelöscht
+            }
+            return 0; // Datei existiert nicht
+        }
+
+        /// <summary>
         /// Adds a new task to the database for the specified user.
         /// </summary>
-        /// <remarks>The task is initially marked as incomplete and is flagged as internal. Ensure that
-        /// the database connection string is properly configured before calling this method.</remarks>
+        /// <remarks>The <paramref name="isCompleted"/> parameter is ignored, and the task is always
+        /// created with a status of not completed. The <paramref name="description"/> and <paramref name="dueDate"/>
+        /// parameters can be null, in which case the corresponding database fields will be set to NULL.</remarks>
         /// <param name="userId">The ID of the user to whom the task belongs. Must be a valid user ID.</param>
         /// <param name="name">The name of the task. Cannot be null or empty.</param>
-        /// <param name="description">An optional description of the task. If null, no description will be stored.</param>
-        /// <param name="dueDate">An optional due date for the task. If null, no due date will be stored.</param>
+        /// <param name="isCompleted">Indicates whether the task is completed. This parameter is ignored and the task is always created as not
+        /// completed.</param>
+        /// <param name="description">An optional description of the task. Can be null.</param>
+        /// <param name="dueDate">An optional due date for the task. Can be null.</param>
         /// <returns>The number of rows affected by the operation. Typically, this will be 1 if the task is successfully added.</returns>
-        public static int AddTask(int userId, string name, string? description, DateOnly? dueDate)
+        public static int AddTask(int userId, string name, bool isCompleted, string? description, DateOnly? dueDate)
         {
             // Datenbankverbindung öffnen
             using var connection = new SqliteConnection(_connectionString);
@@ -104,7 +133,7 @@ namespace OfficeFlow
             // Parameter hinzufügen
             insertCommand.Parameters.AddWithValue("$userId", userId);
             insertCommand.Parameters.AddWithValue("$name", name);
-            insertCommand.Parameters.AddWithValue("$isCompleted", false);
+            insertCommand.Parameters.AddWithValue("$isCompleted", isCompleted);
             insertCommand.Parameters.AddWithValue("$description", description ?? (object)DBNull.Value);
             insertCommand.Parameters.AddWithValue("$dueDate", dueDate.HasValue ? (object)dueDate.Value : DBNull.Value);
 
@@ -146,6 +175,15 @@ namespace OfficeFlow
             return result;
         }
 
+        /// <summary>
+        /// Deletes all tasks associated with the specified user.
+        /// </summary>
+        /// <remarks>This method retrieves all tasks for the specified user and attempts to delete each
+        /// one. If any task deletion fails, the method will return <see langword="0"/> to indicate a partial or
+        /// complete failure.</remarks>
+        /// <param name="userId">The unique identifier of the user whose tasks are to be deleted.</param>
+        /// <returns>An integer indicating the result of the operation. Returns <see langword="1"/> if all tasks were
+        /// successfully deleted; otherwise, <see langword="0"/> if any task deletion failed.</returns>
         public static int DeleteAllTasks(int userId)
         {
             int result = 0;

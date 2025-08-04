@@ -33,6 +33,9 @@ namespace OfficeFlow
 
             // Initialisieren der Datenbank für Aufgaben
             TaskDatabaseHelper.InitializeDatabase();
+
+            // Initialisieren der Datenbank für Zeiten
+            TimeDatabaseHelper.InitializeDatabase();
         }
 
         /// <summary>

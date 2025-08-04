@@ -169,7 +169,13 @@ namespace OfficeFlow
             // Löschen der ausgewählten Nutzereinstellungen
             int settingsResult = SettingsDatabaseHelper.DeleteUser(user.Id);
 
-            if (userResult == 1 && settingsResult == 1)
+            // Löschen aller Aufgaben des ausgewählten Nutzers
+            int taskResult = TaskDatabaseHelper.DeleteAllTasks(user.Id);
+
+            // Löschen aller Zeiterfassungen des Nuters
+            int timeResult = TimeDatabaseHelper.DeleteAllTimes(user.Id);
+
+            if (userResult == 1 && settingsResult == 1 && taskResult == 1 && timeResult == 1)
             {
                 // Nutzer erfolgreich gelöscht
                 // Updaten der Nutzerliste nach dem Löschen
@@ -188,15 +194,28 @@ namespace OfficeFlow
             if (e.Key == Key.Delete)
             {
                 // Überprüfen, ob ein Nutzer ausgewählt ist
-                var selectedUser = UsersListBox.SelectedItem;
+                var selectedUser = UsersListBox.SelectedItem as User;
                 if (selectedUser != null)
                 {
                     // Löschen des Admins am Ende des Nutzernamens
                     string username = UsersListBox.SelectedItem.ToString().Replace(" (Admin)", "");
-                    // Löschen des ausgewählten Nutzers
-                    int result = UserDatabaseHelper.DeleteUser(username);
 
-                    if (result == 1)
+                    // Löschen des ausgewählten Nutzers
+                    int userResult = UserDatabaseHelper.DeleteUser(selectedUser.Username);
+
+                    // Löschen der ausgewählten Nutzereinstellungen
+                    int settingsResult = SettingsDatabaseHelper.DeleteUser(selectedUser.Id);
+
+                    // Löschen aller Aufgaben des ausgewählten Nutzers
+                    int taskResult = TaskDatabaseHelper.DeleteAllTasks(selectedUser.Id);
+
+                    // Löschen aller Zeiterfassungen des Nutzers
+                    int timeResult = TimeDatabaseHelper.DeleteAllTimes(selectedUser.Id);
+
+                    // Löschen aller exportierten Aufgaben
+                    OutlookHelper.DeleteAllExportedTasks();
+
+                    if (userResult == 1 && settingsResult == 1 && taskResult == 1 && timeResult == 1)
                     {
                         // Nutzer erfolgreich gelöscht
                         // Updaten der Nutzerliste nach dem Löschen
@@ -214,7 +233,7 @@ namespace OfficeFlow
         private void DeleteAllUsersButton_Click(object sender, RoutedEventArgs e)
         {
             // Bestätigungsdialog anzeigen
-            var result = MessageBox.Show("Sind Sie sicher, dass Sie alle Nutzer und deren Einstellungen löschen möchten?\n" +
+            var result = MessageBox.Show("Sind Sie sicher, dass Sie alle Nutzer, deren Einstellungen und deren Aufgaben löschen möchten?\n" +
                 "Daraufhin wird OfficeFlow geschlossen und der Standardnutzer wiederhergestellt.", "Bestätigung", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
             if (result != MessageBoxResult.Yes)
@@ -223,11 +242,22 @@ namespace OfficeFlow
                 return;
             }
 
-            // Löschen aller Nutzer und deren Einstellungen
+            // Löschen aller Nutzer
             int settingsResult = SettingsDatabaseHelper.DeleteDatabase();
+
+            // Löschen aller Nutzereinstellungen
             int userResult = UserDatabaseHelper.DeleteDatabase();
 
-            if (settingsResult == 1 && userResult == 1)
+            // Löschen aller Aufgaben
+            int taskResult = TaskDatabaseHelper.DeleteDatabase();
+
+            // Löschen aller Zeiterfassungen
+            int timeResult = TimeDatabaseHelper.DeleteDatabase();
+
+            // Löschen aller exportierten Aufgaben
+            OutlookHelper.DeleteAllExportedTasks();
+
+            if (settingsResult == 1 && userResult == 1 && taskResult == 1 && timeResult == 1)
             {
                 // Nutzer und Einstellungen erfolgreich gelöscht
                 // Schließen der Anwendung

@@ -40,6 +40,7 @@ namespace OfficeFlow
         {
             // Eingabefelder auslesen
             string name = NameTextBox.Text.Trim();
+            bool isCompleted = false;
             string descriptionText = DescriptionTextBox.Text.Trim();
             string? description = string.IsNullOrEmpty(descriptionText) ? null : descriptionText;
             string dueDateText = DueDateDatePicker.Text;
@@ -53,10 +54,17 @@ namespace OfficeFlow
             else
             {
                 // Aufgabe in Datenbank hinzufügen
-                int result = TaskDatabaseHelper.AddTask(CurrentUser.Id, name, description, dueDate);
+                int result = TaskDatabaseHelper.AddTask(CurrentUser.Id, name, isCompleted, description, dueDate);
 
                 if (result == 1)
                 {
+                    // Aufgabe erfolgreich hinzugefügt
+                    // Prüfen ob Aufgaben nach Outlook exportiert werden sollen
+                    if (SettingsDatabaseHelper.GetExportTasksToOutlook(CurrentUser.Id))
+                    {
+                        // Exportieren aller Aufgaben nach Outlook
+                        OutlookHelper.ExportAllTasks(CurrentUser.Id);
+                    }
                     // Schließen des AddTaskWindows
                     this.Close();
                 }

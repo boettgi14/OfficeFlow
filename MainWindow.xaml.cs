@@ -12,7 +12,7 @@ using System.Windows.Shapes;
 
 /*
  * TODO
- * - Aktualisierungsbutton einbauen (Aktualisiert die Tasklisten und die Einstellungen des Nutzers)
+ * - Ansicht für Zeiterfassung erstellen
  */
 
 namespace OfficeFlow
@@ -32,6 +32,12 @@ namespace OfficeFlow
         /// <remarks>This field holds the user information for the active session.  It is intended for
         /// internal use and should not be accessed directly outside of the class.</remarks>
         private User CurrentUser;
+        /// <summary>
+        /// Tracks and manages time-related operations or measurements within the application.
+        /// </summary>
+        /// <remarks>This field is used internally to handle time tracking functionality. It is not
+        /// exposed directly to consumers of the class.</remarks>
+        private TimeTracker TimeTracker;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MainWindow"/> class.
@@ -52,6 +58,11 @@ namespace OfficeFlow
             // Setzen der UI auf aktuellen Zustand der Listen
             SetTaskButtonStatus();
             SetAppointmentButtonStatus();
+
+            // Setzen der UI auf den aktuellen Zustand der Zeiterfassung
+            PauseTimeTrackingMenuItem.IsEnabled = false;
+            ResumeTimeTrackingMenuItem.IsEnabled = false;
+            StopTimeTrackingMenuItem.IsEnabled = false;
 
             // Updaten der Aufgabenliste im ViewModel
             ViewModel.UpdateTasksListBox(CurrentUser.Id);
@@ -224,7 +235,7 @@ namespace OfficeFlow
             if (task != null)
             {
                 // Erstellen des EditTaskWindows
-                EditTaskWindow editTaskWindow = new EditTaskWindow(task);
+                EditTaskWindow editTaskWindow = new EditTaskWindow(CurrentUser, task);
                 editTaskWindow.Owner = this; // Besitzer auf MainWindow setzen
                 editTaskWindow.ShowDialog();
                 // Aktualisieren der Aufgabenliste im ViewModel nach dem Bearbeiten
@@ -249,6 +260,12 @@ namespace OfficeFlow
                 if (result == 1)
                 {
                     // Aufgabe erfolgreich gelöscht
+                    // Prüfen ob Aufgaben nach Outlook exportiert werden sollen
+                    if (SettingsDatabaseHelper.GetExportTasksToOutlook(CurrentUser.Id))
+                    {
+                        // Exportieren aller Aufgaben nach Outlook
+                        OutlookHelper.ExportAllTasks(CurrentUser.Id);
+                    }
                     // Aktualisieren der Aufgabenliste im ViewModel
                     ViewModel.UpdateTasksListBox(CurrentUser.Id);
                 }
@@ -300,6 +317,12 @@ namespace OfficeFlow
                         if (result == 1)
                         {
                             // Aufgabe erfolgreich gelöscht
+                            // Prüfen ob Aufgaben nach Outlook exportiert werden sollen
+                            if (SettingsDatabaseHelper.GetExportTasksToOutlook(CurrentUser.Id))
+                            {
+                                // Exportieren aller Aufgaben nach Outlook
+                                OutlookHelper.ExportAllTasks(CurrentUser.Id);
+                            }
                             // Updaten der Aufgabenliste nach dem Löschen
                             ViewModel.UpdateTasksListBox(CurrentUser.Id);
                         }
@@ -331,6 +354,12 @@ namespace OfficeFlow
                 if (result == 1)
                 {
                     // Aufgabe erfolgreich aktualisiert
+                    // Prüfen ob Aufgaben nach Outlook exportiert werden sollen
+                    if (SettingsDatabaseHelper.GetExportTasksToOutlook(CurrentUser.Id))
+                    {
+                        // Exportieren aller Aufgaben nach Outlook
+                        OutlookHelper.ExportAllTasks(CurrentUser.Id);
+                    }
                     // Updaten der Aufgabenliste nach dem Aktualisieren
                     ViewModel.UpdateTasksListBox(CurrentUser.Id);
                 }
@@ -378,8 +407,75 @@ namespace OfficeFlow
 
         private void RefreshMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            // Setzen der UI auf Einstellungen des Nutzers
+            setSettings(CurrentUser);
             // Aktualisieren der Aufgabenliste im ViewModel
             ViewModel.UpdateTasksListBox(CurrentUser.Id);
+        }
+
+        private void StartTimeTrackingMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Starten der Zeiterfassung
+            TimeTracker = new TimeTracker(CurrentUser);
+            int result = TimeTracker.Start();
+            if (result == 1)
+            {
+                // Verändern der Anzeige
+                TimeTrackingRectangle.Fill = new SolidColorBrush(Colors.Green);
+                TimeTrackingTextBlock.Text = "Zeiterfassung läuft...";
+                StartTimeTrackingMenuItem.IsEnabled = false;
+                PauseTimeTrackingMenuItem.IsEnabled = true;
+                StopTimeTrackingMenuItem.IsEnabled = true;
+            }
+        }
+
+        private void PauseTimeTrackingMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Pausieren der Zeiterfassung
+            int result = TimeTracker.Pause();
+            if (result == 1)
+            {
+                // Verändern der Anzeige
+                TimeTrackingRectangle.Fill = new SolidColorBrush(Colors.Yellow);
+                TimeTrackingTextBlock.Text = "Zeiterfassung wurde pausiert!";
+                PauseTimeTrackingMenuItem.IsEnabled = false;
+                ResumeTimeTrackingMenuItem.IsEnabled = true;
+            }
+        }
+
+        private void ResumeTimeTrackingMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Fortsetzen der Zeiterfassung
+            int result = TimeTracker.Resume();
+            if (result == 1)
+            {
+                // Verändern der Anzeige
+                TimeTrackingRectangle.Fill = new SolidColorBrush(Colors.Green);
+                TimeTrackingTextBlock.Text = "Zeiterfassung läuft...";
+                PauseTimeTrackingMenuItem.IsEnabled = true;
+                ResumeTimeTrackingMenuItem.IsEnabled = false;
+            }
+        }
+
+        private void StopTimeTrackingMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Stoppen der Zeiterfassung
+            int result = TimeTracker.Stop();
+            if (result == 1)
+            {
+                // Verändern der Anzeige
+                TimeTrackingRectangle.Fill = new SolidColorBrush(Colors.Red);
+                TimeTrackingTextBlock.Text = "Zeiterfassung wurde gestoppt!";
+                StartTimeTrackingMenuItem.IsEnabled = true;
+                PauseTimeTrackingMenuItem.IsEnabled = false;
+                ResumeTimeTrackingMenuItem.IsEnabled = false;
+                StopTimeTrackingMenuItem.IsEnabled = false;
+            }
+        }
+
+        private void ViewTimeTrackingMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

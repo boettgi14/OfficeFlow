@@ -115,7 +115,29 @@
                     Click="EndProgramMenuItem_Click"
                     Header="_OfficeFlow beenden" />
             </MenuItem>
-            <MenuItem Header="_Zeitmanagement" />
+            <MenuItem Header="_Zeiterfassung">
+                <MenuItem
+                    Name="StartTimeTrackingMenuItem"
+                    Click="StartTimeTrackingMenuItem_Click"
+                    Header="_Starten" />
+                <MenuItem
+                    Name="PauseTimeTrackingMenuItem"
+                    Click="PauseTimeTrackingMenuItem_Click"
+                    Header="_Pausieren" />
+                <MenuItem
+                    Name="ResumeTimeTrackingMenuItem"
+                    Click="ResumeTimeTrackingMenuItem_Click"
+                    Header="_Fortsetzen" />
+                <MenuItem
+                    Name="StopTimeTrackingMenuItem"
+                    Click="StopTimeTrackingMenuItem_Click"
+                    Header="_Stoppen" />
+                <Separator />
+                <MenuItem
+                    Name="ViewTimeTrackingMenuItem"
+                    Click="ViewTimeTrackingMenuItem_Click"
+                    Header="_Übersicht" />
+            </MenuItem>
             <MenuItem Header="_Termine">
                 <MenuItem
                     Name="AddAppointmentMenuItem"
@@ -168,92 +190,114 @@
             </MenuItem>
         </Menu>
 
-        <!--  Kalender  -->
-        <Grid Grid.Row="1" Margin="10">
+        <!--  Zeiterfassung und Kalender  -->
+        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
-                <!--  Für Wochentage  -->
+                <!--  Für Zeiterfassung  -->
                 <RowDefinition Height="Auto" />
-                <!--  Für Kalenderinhalt  -->
+                <!--  Für Kalender  -->
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
+            <!--  Zeiterfassung  -->
+            <StackPanel Margin="15,10,15,0" Orientation="Horizontal">
+                <Rectangle
+                    Name="TimeTrackingRectangle"
+                    Width="18"
+                    Height="18"
+                    Fill="LightGray" />
+                <TextBlock
+                    Name="TimeTrackingTextBlock"
+                    Margin="10,0,0,0"
+                    FontSize="18"
+                    Text="Zeiterfassung nicht gestartet" />
+            </StackPanel>
+            <!--  Kalender  -->
+            <Grid Grid.Row="1" Margin="10">
+                <Grid.RowDefinitions>
+                    <!--  Für Wochentage  -->
+                    <RowDefinition Height="Auto" />
+                    <!--  Für Kalenderinhalt  -->
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-            <!--  Wochentage  -->
-            <UniformGrid
-                Margin="5"
-                Columns="7"
-                Rows="1">
-                <TextBlock
-                    FontSize="18"
-                    FontWeight="Bold"
-                    Text="Montag"
-                    TextAlignment="Center" />
-                <TextBlock
-                    FontSize="18"
-                    FontWeight="Bold"
-                    Text="Dienstag"
-                    TextAlignment="Center" />
-                <TextBlock
-                    FontSize="18"
-                    FontWeight="Bold"
-                    Text="Mittwoch"
-                    TextAlignment="Center" />
-                <TextBlock
-                    FontSize="18"
-                    FontWeight="Bold"
-                    Text="Donnerstag"
-                    TextAlignment="Center" />
-                <TextBlock
-                    FontSize="18"
-                    FontWeight="Bold"
-                    Text="Freitag"
-                    TextAlignment="Center" />
-                <TextBlock
-                    FontSize="18"
-                    FontWeight="Bold"
-                    Text="Samstag"
-                    TextAlignment="Center" />
-                <TextBlock
-                    FontSize="18"
-                    FontWeight="Bold"
-                    Text="Sonntag"
-                    TextAlignment="Center" />
-            </UniformGrid>
+                <!--  Wochentage  -->
+                <UniformGrid
+                    Margin="5"
+                    Columns="7"
+                    Rows="1">
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Text="Montag"
+                        TextAlignment="Center" />
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Text="Dienstag"
+                        TextAlignment="Center" />
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Text="Mittwoch"
+                        TextAlignment="Center" />
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Text="Donnerstag"
+                        TextAlignment="Center" />
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Text="Freitag"
+                        TextAlignment="Center" />
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Text="Samstag"
+                        TextAlignment="Center" />
+                    <TextBlock
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Text="Sonntag"
+                        TextAlignment="Center" />
+                </UniformGrid>
 
-            <!--  Kalenderinhalt  -->
-            <UniformGrid
-                Grid.Row="1"
-                Margin="5"
-                Columns="7"
-                Rows="1">
-                <Border
-                    Padding="5"
-                    BorderBrush="Gray"
-                    BorderThickness="1" />
-                <Border
-                    Padding="5"
-                    BorderBrush="Gray"
-                    BorderThickness="1" />
-                <Border
-                    Padding="5"
-                    BorderBrush="Gray"
-                    BorderThickness="1" />
-                <Border
-                    Padding="5"
-                    BorderBrush="Gray"
-                    BorderThickness="1" />
-                <Border
-                    Padding="5"
-                    BorderBrush="Gray"
-                    BorderThickness="1" />
-                <Border
-                    Padding="5"
-                    BorderBrush="Gray"
-                    BorderThickness="1" />
-                <Border
-                    Padding="5"
-                    BorderBrush="Gray"
-                    BorderThickness="1" />
-            </UniformGrid>
+                <!--  Kalenderinhalt  -->
+                <UniformGrid
+                    Grid.Row="1"
+                    Margin="5"
+                    Columns="7"
+                    Rows="1">
+                    <Border
+                        Padding="5"
+                        BorderBrush="Gray"
+                        BorderThickness="1" />
+                    <Border
+                        Padding="5"
+                        BorderBrush="Gray"
+                        BorderThickness="1" />
+                    <Border
+                        Padding="5"
+                        BorderBrush="Gray"
+                        BorderThickness="1" />
+                    <Border
+                        Padding="5"
+                        BorderBrush="Gray"
+                        BorderThickness="1" />
+                    <Border
+                        Padding="5"
+                        BorderBrush="Gray"
+                        BorderThickness="1" />
+                    <Border
+                        Padding="5"
+                        BorderBrush="Gray"
+                        BorderThickness="1" />
+                    <Border
+                        Padding="5"
+                        BorderBrush="Gray"
+                        BorderThickness="1" />
+                </UniformGrid>
+            </Grid>
         </Grid>
 
         <!--  Aufgabenliste  -->

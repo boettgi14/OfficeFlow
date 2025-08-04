@@ -52,7 +52,8 @@ namespace OfficeFlow
                     CREATE TABLE settings (
                     user_id INTEGER PRIMARY KEY,
                     order_tasks_by STRING NOT NULL DEFAULT 'id',
-                    export_tasks_to_outlook BOOLEAN NOT NULL DEFAULT false);";
+                    export_tasks_to_outlook BOOLEAN NOT NULL DEFAULT false,
+                    automatic_time_tracking BOOLEAN NOT NULL DEFAULT false);";
 
                 // Create Befehl ausführen
                 int result = createCommand.ExecuteNonQuery();
@@ -285,6 +286,66 @@ namespace OfficeFlow
                 WHERE user_id = $userId;";
             insertCommand.Parameters.AddWithValue("$userId", userId);
             insertCommand.Parameters.AddWithValue("$exportToOutlook", exportToOutlook);
+
+            // Insert Befehl ausführen
+            int result = insertCommand.ExecuteNonQuery();
+
+            // Rückgabe des Ergebnisses
+            return result;
+        }
+
+        /// <summary>
+        /// Retrieves the automatic time tracking setting for the specified user.
+        /// </summary>
+        /// <remarks>This method queries the database to determine whether the automatic time tracking 
+        /// feature is enabled for the specified user. If the setting is not found, the method  returns <see
+        /// langword="false"/> as the default value.</remarks>
+        /// <param name="userId">The unique identifier of the user whose setting is being retrieved.</param>
+        /// <returns><see langword="true"/> if automatic time tracking is enabled for the user;  otherwise, <see
+        /// langword="false"/>.</returns>
+        public static bool GetAutomaticTimeTracking(int userId)
+        {
+            // Verbindung zur Datenbank herstellen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Select Befehl vorbereiten
+            var selectCommand = connection.CreateCommand();
+            selectCommand.CommandText = @"
+                SELECT automatic_time_tracking FROM settings WHERE user_id = $userId;";
+            selectCommand.Parameters.AddWithValue("$userId", userId);
+
+            // Select Befehl ausführen und Ergebnis abrufen
+            var result = selectCommand.ExecuteScalar();
+
+            // Rückgabe des Ergebnisses oder Standardwert
+            return result is long longValue && longValue != 0;
+        }
+
+        /// <summary>
+        /// Updates the automatic time tracking setting for a specific user in the database.
+        /// </summary>
+        /// <remarks>This method updates the "automatic_time_tracking" setting in the "settings" table for
+        /// the specified user. Ensure that the database connection string is properly configured before calling this
+        /// method.</remarks>
+        /// <param name="userId">The unique identifier of the user whose setting is being updated. Must be a valid user ID.</param>
+        /// <param name="automaticTimeTracking">A boolean value indicating whether automatic time tracking should be enabled. <see langword="true"/> to
+        /// enable automatic time tracking; otherwise, <see langword="false"/>.</param>
+        /// <returns>The number of rows affected by the update operation. Returns 0 if no rows were updated,  which may indicate
+        /// that the specified user ID does not exist.</returns>
+        public static int SetAutomaticTimeTracking(int userId, bool automaticTimeTracking)
+        {
+            // Verbindung zur Datenbank herstellen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Insert Befehl vorbereiten
+            var insertCommand = connection.CreateCommand();
+            insertCommand.CommandText = @"
+                UPDATE settings SET automatic_time_tracking = $automaticTimeTracking
+                WHERE user_id = $userId;";
+            insertCommand.Parameters.AddWithValue("$userId", userId);
+            insertCommand.Parameters.AddWithValue("$automaticTimeTracking", automaticTimeTracking);
 
             // Insert Befehl ausführen
             int result = insertCommand.ExecuteNonQuery();

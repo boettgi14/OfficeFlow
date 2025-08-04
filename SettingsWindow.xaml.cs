@@ -12,11 +12,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-/*
- * TODO
- * - Export von Aufgaben nach Outlook einbauen (Änderung registrieren, Outlook importieren, Änderung speichern, Outlook löschen, Outlook exportieren)
- */
-
 namespace OfficeFlow
 {
     /// <summary>
@@ -42,6 +37,8 @@ namespace OfficeFlow
             ExportTasksToOutlookCheckBox.IsChecked = SettingsDatabaseHelper.GetExportTasksToOutlook(CurrentUser.Id);
             // Setzen des Buttons zum Löschen exportierter Aufgaben
             DeleteExportedTasksButton.IsEnabled = !ExportTasksToOutlookCheckBox.IsChecked.Value;
+            // Setzen der Checkbox für die automatische Zeiterfassung
+            AutomaticTimeTrackingCheckBox.IsChecked = SettingsDatabaseHelper.GetAutomaticTimeTracking(CurrentUser.Id);
         }
 
         private void ResetSettingsButton_Click(object sender, RoutedEventArgs e)
@@ -100,12 +97,8 @@ namespace OfficeFlow
             {
                 DeleteExportedTasksButton.IsEnabled = false;
                 SettingsDatabaseHelper.SetExportTasksToOutlook(CurrentUser.Id, true);
-                // Löschen aller exportierten Aufgaben aus Outlook
-                OutlookHelper.DeleteAllExportedTasks();
-                // Holen der Aufgaben des Nutzers aus der Datenbank
-                List<Task> tasks = TaskDatabaseHelper.GetAllTasks(CurrentUser.Id);
-                // Exportieren der Aufgaben nach Outlook
-                OutlookHelper.ExportTasks(tasks);
+                // Exportieren aller Aufgaben nach Outlook
+                OutlookHelper.ExportAllTasks(CurrentUser.Id);
             }
             else
             {
@@ -128,6 +121,18 @@ namespace OfficeFlow
 
             // Anzeigen des Hinweises dass Termine keine funktionale Komponente sind
             MessageBox.Show("Termine sind keine funktionale Komponente von OfficeFlow. Diese Checkbox trägt nur zur Vollständigkeit der Programmanischt bei.", "Hinweis", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void AutomaticTimeTrackingCheckBox_Click(object sender, RoutedEventArgs e)
+        {
+            if (AutomaticTimeTrackingCheckBox.IsChecked == true)
+            {
+                SettingsDatabaseHelper.SetAutomaticTimeTracking(CurrentUser.Id, true);
+            }
+            else
+            {
+                SettingsDatabaseHelper.SetAutomaticTimeTracking(CurrentUser.Id, false);
+            }
         }
     }
 }
