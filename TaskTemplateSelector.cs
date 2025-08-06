@@ -24,11 +24,11 @@ namespace OfficeFlow
         /// <summary>
         /// Gets or sets the template used to define the visual representation of a task.
         /// </summary>
-        public DataTemplate TaskTemplate { get; set; }
+        public required DataTemplate TaskTemplate { get; set; }
         /// <summary>
         /// Gets or sets the template used to render task separators in the user interface.
         /// </summary>
-        public DataTemplate TaskSeparatorTemplate { get; set; }
+        public required DataTemplate TaskSeparatorTemplate { get; set; }
 
         /// <summary>
         /// Selects an appropriate <see cref="DataTemplate"/> based on the type of the provided item.

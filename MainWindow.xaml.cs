@@ -10,11 +10,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-/*
- * TODO
- * - Ansicht für Zeiterfassung erstellen
- */
-
 namespace OfficeFlow
 {
     /// <summary>
@@ -48,6 +43,7 @@ namespace OfficeFlow
             InitializeComponent();
 
             CurrentUser = user;
+            TimeTracker = new TimeTracker(CurrentUser);
 
             // Setzen der UI auf Adminstatus des Nutzers
             setAdminStatus(CurrentUser);
@@ -475,7 +471,10 @@ namespace OfficeFlow
 
         private void ViewTimeTrackingMenuItem_Click(object sender, RoutedEventArgs e)
         {
-
+            // Erstellen des ViewTimeTrackingWindows
+            ViewTimeTrackingWindow viewTimeTrackingWindow = new ViewTimeTrackingWindow(CurrentUser);
+            viewTimeTrackingWindow.Owner = this; // Besitzer auf MainWindow setzen
+            viewTimeTrackingWindow.ShowDialog();
         }
     }
 }

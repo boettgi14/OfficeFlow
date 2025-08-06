@@ -9,7 +9,7 @@
     Width="400"
     Height="600"
     ResizeMode="NoResize"
-    WindowStartupLocation="CenterOwner"
+    WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
 
     <!--  Layout  -->

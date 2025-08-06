@@ -162,6 +162,14 @@ namespace OfficeFlow
             return result;
         }
 
+        /// <summary>
+        /// Deletes all time entries associated with the specified user.
+        /// </summary>
+        /// <remarks>This method retrieves all time entries for the specified user and attempts to delete
+        /// each one. The result indicates whether any deletions were successful.</remarks>
+        /// <param name="userId">The unique identifier of the user whose time entries are to be deleted.</param>
+        /// <returns>An integer indicating the result of the operation.  Returns <see langword="1"/> if at least one time entry
+        /// was successfully deleted;  otherwise, <see langword="0"/> if no time entries were deleted.</returns>
         public static int DeleteAllTimes(int userId)
         {
             int result = 0;
@@ -176,6 +184,197 @@ namespace OfficeFlow
             return result;
         }
 
+        /// <summary>
+        /// Recalculates the total duration for all records in the database by updating the  <c>total_duration</c> field
+        /// based on the difference between the start and end times,  adjusted for the pause duration.
+        /// </summary>
+        /// <remarks>The method updates the <c>total_duration</c> field in the <c>times</c> table for all
+        /// records.  The calculation is performed using the difference between the <c>start</c> and <c>end</c> 
+        /// timestamps (converted to seconds) minus the <c>pause_duration</c>.</remarks>
+        /// <param name="id">The identifier of the record to process. This parameter is currently unused.</param>
+        /// <returns>The number of rows affected by the update operation.</returns>
+        public static int RecalculateTotalDuration(int id)
+        {
+            // Datenbankverbindung öffnen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Select Befehl vorbereiten
+            var command = connection.CreateCommand();
+            command.CommandText = @"
+                UPDATE times 
+                SET total_duration = (julianday(end) - julianday(start)) * 24 * 60 * 60 - pause_duration;";
+
+            // Ausführen des Befehls
+            int result = command.ExecuteNonQuery();
+
+            // Rückgabe des Ergebnisses
+            return result;
+        }
+
+        /// <summary>
+        /// Updates the start time of a record in the database and recalculates the total duration.
+        /// </summary>
+        /// <remarks>This method updates the start time of a record in the database identified by
+        /// <paramref name="id"/>.  After updating the start time, it recalculates the total duration for the record. 
+        /// Ensure that the database connection string is properly configured before calling this method.</remarks>
+        /// <param name="id">The unique identifier of the record to update. Must correspond to an existing record in the database.</param>
+        /// <param name="startTime">The new start time to set for the record.</param>
+        /// <returns><see langword="1"/> if the update operation or the recalculation of the total duration was successful; 
+        /// otherwise, <see langword="0"/>.</returns>
+        public static int EditStartTime(int id, DateTime startTime)
+        {
+            // Datenbankverbindung öffnen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Select Befehl vorbereiten
+            var insertCommand = connection.CreateCommand();
+            insertCommand.CommandText = @"
+                UPDATE times 
+                SET start = $startTime 
+                WHERE id = $id;";
+            insertCommand.Parameters.AddWithValue("$startTime", startTime);
+            insertCommand.Parameters.AddWithValue("$id", id);
+
+            // Ausführen des Befehls
+            int result = insertCommand.ExecuteNonQuery();
+
+            // Berechnen der neuen Gesamtdauer
+            int calcResult = RecalculateTotalDuration(id);
+
+            // Rückgabe des Ergebnisses
+            if (result != 0 || calcResult != 0)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Updates the end time of a record in the database and recalculates the total duration.
+        /// </summary>
+        /// <remarks>This method updates the end time of a record in the database identified by the
+        /// specified <paramref name="id"/>. After updating the end time, it recalculates the total duration associated
+        /// with the record.</remarks>
+        /// <param name="id">The unique identifier of the record to update.</param>
+        /// <param name="endTime">The new end time to set for the record.</param>
+        /// <returns><see langword="1"/> if the update or recalculation was successful; otherwise, <see langword="0"/>.</returns>
+        public static int EditEndTime(int id, DateTime endTime)
+        {
+            // Datenbankverbindung öffnen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Select Befehl vorbereiten
+            var insertCommand = connection.CreateCommand();
+            insertCommand.CommandText = @"
+                UPDATE times 
+                SET end = $endTime 
+                WHERE id = $id;";
+            insertCommand.Parameters.AddWithValue("$endTime", endTime);
+            insertCommand.Parameters.AddWithValue("$id", id);
+
+            // Ausführen des Befehls
+            int result = insertCommand.ExecuteNonQuery();
+
+            // Berechnen der neuen Gesamtdauer
+            int calcResult = RecalculateTotalDuration(id);
+
+            // Rückgabe des Ergebnisses
+            if (result != 0 || calcResult != 0)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Updates the pause duration for a specific record in the database.
+        /// </summary>
+        /// <remarks>This method updates the <c>pause_duration</c> field in the <c>times</c> table for the
+        /// record with the specified <paramref name="id"/>. Ensure that the database connection string is correctly
+        /// configured before calling this method.</remarks>
+        /// <param name="id">The unique identifier of the record to update.</param>
+        /// <param name="pauseDuration">The new pause duration to set, represented as a <see cref="TimeSpan"/>.</param>
+        /// <returns>The number of rows affected by the update operation. Returns 0 if no record with the specified <paramref
+        /// name="id"/> exists.</returns>
+        public static int EditPauseDuration(int id, TimeSpan pauseDuration)
+        {
+            // Datenbankverbindung öffnen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Select Befehl vorbereiten
+            var insertCommand = connection.CreateCommand();
+            insertCommand.CommandText = @"
+                UPDATE times 
+                SET pause_duration = $pauseDuration
+                WHERE id = $id;";
+            insertCommand.Parameters.AddWithValue("$pauseDuration", pauseDuration);
+            insertCommand.Parameters.AddWithValue("$id", id);
+
+            // Ausführen des Befehls
+            int result = insertCommand.ExecuteNonQuery();
+
+            // Rückgabe des Ergebnisses
+            return result;
+        }
+
+        /// <summary>
+        /// Retrieves a time entry from the database based on the specified identifier.
+        /// </summary>
+        /// <remarks>The method queries the database for a time entry with the given identifier. If a
+        /// matching entry is found, it is returned as a <see cref="Time"/> object. If no entry is found, the method
+        /// returns <see langword="null"/>.</remarks>
+        /// <param name="inputId">The unique identifier of the time entry to retrieve.</param>
+        /// <returns>A <see cref="Time"/> object representing the time entry associated with the specified identifier, or <see
+        /// langword="null"/> if no matching entry is found.</returns>
+        public static Time GetTime(int inputId)
+        {
+            // Datenbankverbindung öffnen
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+
+            // Select Befehl vorbereiten
+            var command = connection.CreateCommand();
+            command.CommandText = @"SELECT * FROM times
+                WHERE id = $inputId;";
+
+            // Parameter hinzufügen
+            command.Parameters.AddWithValue("$inputId", inputId);
+
+            // Select Befehl ausführen
+            using var reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                // Auslesen der Ergebnisse
+                int id = reader.GetInt32(0);
+                int userId = reader.GetInt32(1);
+                DateTime startTime = reader.GetDateTime(2);
+                DateTime endTime = reader.GetDateTime(3);
+                TimeSpan totalDuration = TimeSpan.FromSeconds(reader.GetInt32(4));
+                TimeSpan pauseDuration = TimeSpan.FromSeconds(reader.GetInt32(5));
+                return new Time(id, userId, startTime, endTime, totalDuration, pauseDuration);
+
+            }
+            return null; // Keine Zeiterfassung gefunden
+        }
+
+        /// <summary>
+        /// Retrieves all time entries associated with the specified user ID.
+        /// </summary>
+        /// <remarks>This method queries the database for all time entries associated with the given user
+        /// ID. Ensure that the database connection string is properly configured before calling this method.</remarks>
+        /// <param name="inputUserId">The ID of the user whose time entries are to be retrieved.</param>
+        /// <returns>A list of <see cref="Time"/> objects representing the time entries for the specified user. Returns an empty
+        /// list if no time entries are found.</returns>
         public static List<Time> GetAllTimes(int inputUserId)
         {
             // Initalisieren der Aufgabenliste
@@ -187,7 +386,7 @@ namespace OfficeFlow
 
             // Select Befehl vorbereiten
             var command = connection.CreateCommand();
-            command.CommandText = @"SELECT * FROM tasks
+            command.CommandText = @"SELECT * FROM times
                 WHERE user_id = $inputUserId;";
 
             // Parameter hinzufügen
@@ -205,7 +404,7 @@ namespace OfficeFlow
                 TimeSpan totalDuration = TimeSpan.FromSeconds(reader.GetInt32(4));
                 TimeSpan pauseDuration = TimeSpan.FromSeconds(reader.GetInt32(5));
 
-                Time time = new Time(id, start, end, totalDuration, pauseDuration);
+                Time time = new Time(id, userId, start, end, totalDuration, pauseDuration);
                 times.Add(time);
             }
 

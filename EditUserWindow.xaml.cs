@@ -37,7 +37,11 @@ namespace OfficeFlow
         private void SafeButton_Click(object sender, RoutedEventArgs e)
         {
             // Alte Nutzerdaten setzen
-            User? oldUser = UserDatabaseHelper.GetUser(UsernameLabel.Content.ToString());
+            User? oldUser = null;
+            if (UsernameLabel.Content.ToString() != null && UsernameLabel.Content.ToString() != "")
+            {
+                oldUser = UserDatabaseHelper.GetUser(UsernameLabel.Content.ToString());
+            }
 
             if (oldUser == null)
             {
@@ -116,7 +120,6 @@ namespace OfficeFlow
                     this.Close();
                 }
             }
-
         }
 
         private void AbortButton_Click(object sender, RoutedEventArgs e)

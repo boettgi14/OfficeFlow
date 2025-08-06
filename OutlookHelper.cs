@@ -39,8 +39,9 @@ namespace OfficeFlow
             Application outlookApp = new Application();
 
             // Erstellen eines neuen TaskItems mit den angegebenen Parametern
-            TaskItem outlookTask = outlookApp.CreateItem(OlItemType.olTaskItem) as TaskItem;
+            TaskItem outlookTask = outlookApp.CreateItem(OlItemType.olTaskItem);
             outlookTask.Subject = name;
+
             if (description == null || description == "")
             {
                 outlookTask.Body = _watermark;

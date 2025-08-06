@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xceed.Wpf.Toolkit;
 
 namespace OfficeFlow
 {
@@ -155,7 +156,7 @@ namespace OfficeFlow
                 TimeSpan totalDuration = endTime - StartTime - PauseDuration;
 
                 // Abspeichern der Zeit in der Datenbank
-                TimeDatabaseHelper.AddTime(CurrentUser.Id, StartTime, endTime, totalDuration.Minutes, PauseDuration.Minutes);
+                TimeDatabaseHelper.AddTime(CurrentUser.Id, StartTime, endTime, (int)totalDuration.TotalSeconds, (int)PauseDuration.TotalSeconds);
 
                 return 1;
             }

@@ -66,9 +66,6 @@ namespace OfficeFlow
                 // Create Befehl ausführen
                 int result = createCommand.ExecuteNonQuery();
 
-                // Erstellen von Standardbenutzer mit Adminrechten
-                AddUser("admin", "password", true);
-
                 // Rückgabe des Ergebnisses
                 return result;
             }

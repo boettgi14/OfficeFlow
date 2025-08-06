@@ -13,12 +13,16 @@ namespace OfficeFlow
     /// optional pause duration. It provides a calculated <see cref="Duration"/> property to determine the total elapsed
     /// time between the start and end points. Ensure that the <see cref="Pause"/> property is set to a non-negative
     /// value to avoid exceptions.</remarks>
-    internal class Time
+    public class Time
     {
         /// <summary>
         /// Gets or sets the unique identifier for the entity.
         /// </summary>
         public int Id { get; set; }
+        /// <summary>
+        /// Gets or sets the unique identifier for a user.
+        /// </summary>
+        public int UserId { get; set; }
         /// <summary>
         /// Gets or sets the start date and time of the event or operation.
         /// </summary>
@@ -47,9 +51,10 @@ namespace OfficeFlow
         /// <param name="end"></param>
         /// <param name="totalDuration"></param>
         /// <param name="pauseDuration"></param>
-        public Time(int id, DateTime start, DateTime end, TimeSpan totalDuration, TimeSpan pauseDuration)
+        public Time(int id, int userId, DateTime start, DateTime end, TimeSpan totalDuration, TimeSpan pauseDuration)
         {
             this.Id = id;
+            this.UserId = userId;
             this.Start = start;
             this.End = end;
             this.TotalDuration = totalDuration;

@@ -115,21 +115,25 @@ namespace OfficeFlow
 
         private void UsersListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Überprüfen, ob ein Nutzer ausgewählt wurde
+            // Überprüfen ob ein Nutzer ausgewählt wurde
             SetButtonStatus();
         }
 
         private void EditUserButton_Click(object sender, RoutedEventArgs e)
         {
-            // Löschen des Admins am Ende des Nutzernamens
-            string username = UsersListBox.SelectedItem.ToString().Replace(" (Admin)", "");
-            // Ausgewählten Nutzer aus der Datenbank abrufen
-            User? user = UserDatabaseHelper.GetUser(username);
+            User? user = null;
+            if (UsersListBox.SelectedItem.ToString() != null && UsersListBox.SelectedItem.ToString() != "")
+            {
+                // Löschen des Admins am Ende des Nutzernamens
+                string username = UsersListBox.SelectedItem.ToString().Replace(" (Admin)", "");
+                // Ausgewählten Nutzer aus der Datenbank abrufen
+                user = UserDatabaseHelper.GetUser(username);
+            }
 
             if (user == null)
             {
                 // Benutzer nicht gefunden
-                MessageBox.Show("Der Benutzer konnte nicht gefunden werden! Bitte verusche Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Der Benutzer konnte nicht gefunden werden! Bitte versúche Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             else
             {
@@ -145,9 +149,14 @@ namespace OfficeFlow
 
         private void DeleteUserButton_Click(object sender, RoutedEventArgs e)
         {
-            // Löschen des Admins am Ende des Nutzernamens
-            string username = UsersListBox.SelectedItem.ToString().Replace(" (Admin)", "");
-            User? user = UserDatabaseHelper.GetUser(username);
+            User? user = null;
+            if (UsersListBox.SelectedItem.ToString() != null && UsersListBox.SelectedItem.ToString() != "")
+            {
+                // Löschen des Admins am Ende des Nutzernamens
+                string username = UsersListBox.SelectedItem.ToString().Replace(" (Admin)", "");
+                // Ausgewählten Nutzer aus der Datenbank abrufen
+                user = UserDatabaseHelper.GetUser(username);
+            }
 
             // Fehlerbehandlung für Holen des Nutzers
             if (user == null)
@@ -190,10 +199,10 @@ namespace OfficeFlow
 
         private void UsersListBox_KeyDown(object sender, KeyEventArgs e)
         {
-            // Überprüfen, ob die Entf-Taste gedrückt wurde
+            // Überprüfen, ob die Entf Taste gedrückt wurde
             if (e.Key == Key.Delete)
             {
-                // Überprüfen, ob ein Nutzer ausgewählt ist
+                // Überprüfen ob ein Nutzer ausgewählt ist
                 var selectedUser = UsersListBox.SelectedItem as User;
                 if (selectedUser != null)
                 {
@@ -226,6 +235,11 @@ namespace OfficeFlow
                         // Fehler beim Löschen des Nutzers
                         MessageBox.Show("Fehler beim Löschen des Nutzers! Bitte versuchen Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
+                }
+                else
+                {
+                    // Kein Nutzer ausgewählt
+                    MessageBox.Show("Bitte wählen Sie einen Nutzer aus, um ihn zu löschen!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
