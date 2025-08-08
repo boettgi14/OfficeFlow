@@ -56,7 +56,12 @@ namespace OfficeFlow
             int settingsResult = SettingsDatabaseHelper.ResetUser(CurrentUser.Id);
 
 
-            if (settingsResult != 1)
+            if (settingsResult == 1)
+            {
+                // Nutzereinstellungen erfolgreich zurückgesetzt
+                MessageBox.Show("Ihre Nutzereinstellungen wurden erfolgreich zurückgesetzt!\nZum Anwenden der Einstellungen der Zeiterfassung muss das Programm neu gestartet werden!", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
             {
                 // Fehler beim Löschen der Nutzereinstellungen
                 MessageBox.Show("Fehler beim Zurücksetzen der Nutzereinstellungen! Bitte versuchen Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -81,7 +86,7 @@ namespace OfficeFlow
         private void DeleteExportedAppointmentsButton_Click(object sender, RoutedEventArgs e)
         {
             // Anzeigen des Hinweises dass Termine keine funktionale Komponente sind
-            MessageBox.Show("Termine sind keine funktionale Komponente von OfficeFlow. Dieser Button trägt nur zur Vollständigkeit der Programmanischt bei.", "Hinweis", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Termine sind keine funktionale Komponente von OfficeFlow.\nDieser Button trägt nur zur Vollständigkeit der Programmanischt bei.", "Hinweis", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -120,7 +125,7 @@ namespace OfficeFlow
             }
 
             // Anzeigen des Hinweises dass Termine keine funktionale Komponente sind
-            MessageBox.Show("Termine sind keine funktionale Komponente von OfficeFlow. Diese Checkbox trägt nur zur Vollständigkeit der Programmanischt bei.", "Hinweis", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Termine sind keine funktionale Komponente von OfficeFlow.\nDiese Checkbox trägt nur zur Vollständigkeit der Programmanischt bei.", "Hinweis", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void AutomaticTimeTrackingCheckBox_Click(object sender, RoutedEventArgs e)
@@ -133,6 +138,8 @@ namespace OfficeFlow
             {
                 SettingsDatabaseHelper.SetAutomaticTimeTracking(CurrentUser.Id, false);
             }
+            // Anzeigen des Hinweises dass ein Neustart des Programms erforderlich ist
+            MessageBox.Show("Die automatische Zeiterfassung wurde geändert.\nZum Anwenden der Einstellungen muss das Programm neu gestartet werden!", "Hinweis", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

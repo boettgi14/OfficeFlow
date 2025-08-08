@@ -9,6 +9,7 @@
     Title="OfficeFlow"
     MinWidth="800"
     MinHeight="450"
+    Closing="Window_Closing"
     WindowState="Maximized"
     mc:Ignorable="d">
 

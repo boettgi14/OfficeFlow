@@ -41,27 +41,56 @@ namespace OfficeFlow
         public MainWindow(User user)
         {
             InitializeComponent();
-
             CurrentUser = user;
+
             TimeTracker = new TimeTracker(CurrentUser);
+            // Setzen der UI auf den aktuellen Zustand der Zeiterfassung
+            PauseTimeTrackingMenuItem.IsEnabled = false;
+            ResumeTimeTrackingMenuItem.IsEnabled = false;
+            StopTimeTrackingMenuItem.IsEnabled = false;
+            // Setzen des automatischen Startens der Zeiterfassung des Nutzers
+            SetAutomaticTimeTracking();
 
             // Setzen der UI auf Adminstatus des Nutzers
-            setAdminStatus(CurrentUser);
+            SetAdminStatus(CurrentUser);
 
-            // Setzen der UI auf Einstellungen des Nutzers
-            setSettings(CurrentUser);
+            // Setzen der Reihenfolge der Aufgabenliste des Nutzers
+            SetOrderTasksBy(CurrentUser);
 
             // Setzen der UI auf aktuellen Zustand der Listen
             SetTaskButtonStatus();
             SetAppointmentButtonStatus();
 
-            // Setzen der UI auf den aktuellen Zustand der Zeiterfassung
-            PauseTimeTrackingMenuItem.IsEnabled = false;
-            ResumeTimeTrackingMenuItem.IsEnabled = false;
-            StopTimeTrackingMenuItem.IsEnabled = false;
-
             // Updaten der Aufgabenliste im ViewModel
             ViewModel.UpdateTasksListBox(CurrentUser.Id);
+        }
+
+        /// <summary>
+        /// Überprüft, ob für den aktuellen Nutzer das automatische Starten der Zeiterfassung aktiviert ist,
+        /// und startet die Zeiterfassung gegebenenfalls automatisch.
+        /// </summary>
+        /// <remarks>
+        /// Diese Methode liest die entsprechende Nutzereinstellung aus der Datenbank und startet die Zeiterfassung,
+        /// falls die Option aktiviert ist. Anschließend wird die Benutzeroberfläche aktualisiert, um den Status der
+        /// Zeiterfassung widerzuspiegeln.
+        /// </remarks>
+        private void SetAutomaticTimeTracking()
+        {
+            // Automatisches Starten der Zeiterfassung
+            if (SettingsDatabaseHelper.GetAutomaticTimeTracking(CurrentUser.Id))
+            {
+                // Automatisches Starten der Zeiterfassung
+                int result = TimeTracker.Start();
+                if (result == 1)
+                {
+                    // Verändern der Anzeige
+                    TimeTrackingRectangle.Fill = new SolidColorBrush(Colors.Green);
+                    TimeTrackingTextBlock.Text = "Zeiterfassung läuft...";
+                    StartTimeTrackingMenuItem.IsEnabled = false;
+                    PauseTimeTrackingMenuItem.IsEnabled = true;
+                    StopTimeTrackingMenuItem.IsEnabled = true;
+                }
+            }
         }
 
         /// <summary>
@@ -72,7 +101,7 @@ namespace OfficeFlow
         /// by their due dates. Otherwise, tasks are sorted by their IDs. The corresponding menu items are also updated
         /// to reflect the selected sorting order.</remarks>
         /// <param name="user">The user whose task sorting settings are to be applied. This parameter cannot be null.</param>
-        private void setSettings(User user)
+        private void SetOrderTasksBy(User user)
         {
             // Sortierung der Aufgabenliste
             string orderTasksBy = SettingsDatabaseHelper.GetOrderTasksBy(CurrentUser.Id);
@@ -99,7 +128,7 @@ namespace OfficeFlow
         /// administrator, administrative functions are enabled; otherwise, they are disabled.</remarks>
         /// <param name="user">The user whose administrative status is being updated. The <see cref="User.AdminStatus"/> property
         /// determines whether administrative functions are enabled.</param>
-        private void setAdminStatus(User user)
+        private void SetAdminStatus(User user)
         {
             if (user.AdminStatus)
             {
@@ -207,8 +236,8 @@ namespace OfficeFlow
             settingsWindow.Owner = this; // Besitzer auf MainWindow setzen
             settingsWindow.ShowDialog();
 
-            // Setzen der UI auf Einstellungen des Nutzers
-            setSettings(CurrentUser);
+            // Setzen der Reihenfolge der Aufgabenliste des Nutzers
+            SetOrderTasksBy(CurrentUser);
 
             // Updaten der Aufgabenliste im ViewModel
             ViewModel.UpdateTasksListBox(CurrentUser.Id);
@@ -404,7 +433,7 @@ namespace OfficeFlow
         private void RefreshMenuItem_Click(object sender, RoutedEventArgs e)
         {
             // Setzen der UI auf Einstellungen des Nutzers
-            setSettings(CurrentUser);
+            SetOrderTasksBy(CurrentUser);
             // Aktualisieren der Aufgabenliste im ViewModel
             ViewModel.UpdateTasksListBox(CurrentUser.Id);
         }
@@ -475,6 +504,15 @@ namespace OfficeFlow
             ViewTimeTrackingWindow viewTimeTrackingWindow = new ViewTimeTrackingWindow(CurrentUser);
             viewTimeTrackingWindow.Owner = this; // Besitzer auf MainWindow setzen
             viewTimeTrackingWindow.ShowDialog();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Stoppen des TimeTrackers wenn die Zeiterfassung läuft
+            if (StopTimeTrackingMenuItem.IsEnabled)
+            {
+                TimeTracker.Stop();
+            }
         }
     }
 }

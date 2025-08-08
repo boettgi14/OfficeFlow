@@ -40,6 +40,12 @@ namespace OfficeFlow
             InitializeComponent();
             CurrentUser = user;
 
+            // Setzen der Namen für die Drucken Buttons
+            DateTime now = DateTime.Now;
+            ExportCurrentMonthButton.Content = now.ToString("MMMM") + " drucken";
+            DateTime last = DateTime.Now.AddMonths(-1);
+            ExportLastMonthButton.Content = last.ToString("MMMM") + " drucken";
+
             // Anzeigen der Nutzerliste
             UpdateTimesListBox();
 
@@ -143,7 +149,7 @@ namespace OfficeFlow
             else
             {
                 // Erstellen des EditTimeWindow
-                EditTimeWindow editTimeWindow = new EditTimeWindow(time);
+                EditTimeWindow editTimeWindow = new EditTimeWindow(CurrentUser, time);
                 editTimeWindow.Owner = this; // Besitzer auf ViewTimeTrackingWindow setzen
                 editTimeWindow.ShowDialog();
 
@@ -193,6 +199,18 @@ namespace OfficeFlow
         {
             // Schließen des Fensters
             this.Close();
+        }
+
+        private void ExportCurrentMonthButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Öffnen von Excel mit Zeiten des aktuellen Monats
+            ExcelHelper.ExportCurrentMonthToExcel(CurrentUser.Id, CurrentUser.Username);
+        }
+
+        private void ExportLastMonthButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Öffnen von Excel mit Zeiten des letzten Monats
+            ExcelHelper.ExportLastMonthToExcel(CurrentUser.Id, CurrentUser.Username);
         }
     }
 }

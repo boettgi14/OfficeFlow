@@ -305,7 +305,7 @@ namespace OfficeFlow
         /// <param name="pauseDuration">The new pause duration to set, represented as a <see cref="TimeSpan"/>.</param>
         /// <returns>The number of rows affected by the update operation. Returns 0 if no record with the specified <paramref
         /// name="id"/> exists.</returns>
-        public static int EditPauseDuration(int id, TimeSpan pauseDuration)
+        public static int EditPauseDuration(int id, int pauseDuration)
         {
             // Datenbankverbindung öffnen
             using var connection = new SqliteConnection(_connectionString);
@@ -410,6 +410,25 @@ namespace OfficeFlow
 
             // Rückgabe der Nutzerliste
             return times;
+        }
+
+        public static bool IsTimeOverlapping(int userId, int timeId, DateTime startTime, DateTime endTime)
+        {
+            List<Time> times = GetAllTimes(userId);
+            foreach (Time time in times)
+            {
+                // Überschneidung prüfen, außer für die Zeiterfassung mit der gleichen ID
+                if (time.Id != timeId &&
+                    ((startTime >= time.Start && startTime < time.End) ||
+                    (endTime > time.Start && endTime <= time.End) ||
+                    (startTime <= time.Start && endTime >= time.End)))
+                {
+                    // Überschneidung gefunden
+                    return true;
+                }
+            }
+            // Keine Überschneidung gefunden
+            return false;
         }
     }
 }

@@ -33,7 +33,7 @@ namespace OfficeFlow
         private void SafeButton_Click(object sender, RoutedEventArgs e)
         {
             // Anzeigen des Hinweises dass Termine keine funktionale Komponente sind
-            MessageBox.Show("Termine sind keine funktionale Komponente von OfficeFlow. Dieses Fenster trägt nur zur Vollständigkeit der Programmanischt bei.", "Hinweis", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Termine sind keine funktionale Komponente von OfficeFlow.\nDieses Fenster trägt nur zur Vollständigkeit der Programmanischt bei.", "Hinweis", MessageBoxButton.OK, MessageBoxImage.Information);
             // Schließen des AddAppointmentWindows
             this.Close();
         }
