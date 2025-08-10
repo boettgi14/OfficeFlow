@@ -7,7 +7,7 @@
 - **Technologie:** .NET 8, WPF
 - **Plattform:** Windows 10 oder neuer
 - **Datenhaltung:** Lokale Speicherung, regelmäßige Sicherungsoptionen
-- **Externe Ressourcen:** Microsoft 365
+- **Externe Ressourcen:** Microsoft Visual Studio 2022, Microsoft 365
 - **Sprache:** Deutsch
 
 ## Hauptfunktionen
@@ -22,18 +22,20 @@
 
 - Windows 10 oder neuer
 - .NET 8 Runtime
+- Microsoft Visual Studio 2022
 - Microsoft 365
 
 ## Installation
 
 1. .NET 8 Runtime installieren.
 2. Microsoft 365 installieren.
-3. OfficeFlow-Installer herunterladen und ausführen.
-4. Anwendung starten.
+3. Dieses Repository klonen oder herunterladen und in Visual Studio öffnen.
+4. Anwendung starten oder als Release erstellen.
 
 ## Erste Schritte
 
 1. Mit Standardnutzer anmelden und neue Nutzer nach Wunsch anlegen.
+    - Standardnutzer: `admin` / `password`
 2. Nutzereinstellungen nach persönlichen Vorstellungen einstellen.
 2. Aufgaben und Termine hinzufügen, verwalten und nach Outlook exportieren.
 3. Arbeitszeiten erfassen und am Monatsende für die Lohnbuchhaltung mithilfe von Excel ausdrucken.
