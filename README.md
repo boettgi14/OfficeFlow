@@ -1,58 +1,63 @@
 # OfficeFlow
 
-**OfficeFlow** ist eine Desktop-Anwendung zur effizienten Organisation und Verwaltung von Büroaufgaben und Arbeitsabläufen. Die Software wurde für Windows entwickelt und setzt auf das .NET 8 Framework.
+**OfficeFlow** is a desktop application for efficient organization and management of office tasks and workflows. The software is developed for Windows and is based on the .NET 8 framework.
 
-## Fakten zum Projekt
+## Project Facts
 
-- **Technologie:** .NET 8, WPF
-- **Plattform:** Windows 10 oder neuer
-- **Datenhaltung:** Lokale Speicherung, regelmäßige Sicherungsoptionen
-- **Externe Ressourcen:** Microsoft Visual Studio 2022, Microsoft 365
-- **Sprache:** Deutsch
+- **Technology:** .NET 8, WPF
+- **Platform:** Windows 10 or newer
+- **IDE:** Microsoft Visual Studio 2022 or newer
+- **Data Storage:** Local storage, regular backup options
+- **External Resources:** Microsoft 365
+- **Language:** German
 
-## Hauptfunktionen
+## Main Features
 
-- **Aufgabenmanagement:** Aufgaben können erstellt, bearbeitet und mit Fälligkeitsdaten versehen werden.
-- **Terminplanung:** Termine können erstellt und bearbeitet werden. Außerdem können Benachrichtigungen vor Terminen aktiviert werden.
-- **Arbeitszeiterfassung:** Arbeitszeiten können manuell oder automatisch gestartet und gestoppt werden. Pausenzeiten können während der Erfassung hinzugefügt werden.
-- **Arbeit mit Office 365:** Möglichkeit des Export von Terminen und Aufgaben nach Outlook und Export von Arbeitszeiten nach Excel.
-- **Benutzerfreundliche Oberfläche:** Klare Strukturen, intuitive Bedienung und kontextbezogene Hilfen.
+- **Task Management:** Tasks can be created, edited, and assigned due dates.
+- **Appointment Scheduling:** Appointments can be created and edited. Notifications before appointments can be enabled.
+- **Working Time Tracking:** Working times can be started and stopped manually or automatically. Break times can be added during tracking.
+- **Integration with Office 365:** Option to export appointments and tasks to Outlook and export working times to Excel.
+- **User-Friendly Interface:** Clear structures, intuitive operation, and context-sensitive help.
 
-## Systemvoraussetzungen
+## System Requirements
 
-- Windows 10 oder neuer
+- Windows 10 or newer
 - .NET 8 Runtime
-- Microsoft Visual Studio 2022
+- Microsoft Visual Studio 2022 or newer
 - Microsoft 365
 
 ## Installation
 
-1. .NET 8 Runtime installieren.
-2. Microsoft 365 installieren.
-3. Dieses Repository klonen oder herunterladen und in Visual Studio öffnen.
-4. Anwendung starten oder als Release erstellen.
+1. Install .NET 8 Runtime.
+2. Install Microsoft 365.
+3. Clone or download this repository and open it in Visual Studio.
+4. Start the application or build a release.
 
-## Erste Schritte
+## Getting Started
 
-1. Mit Standardnutzer anmelden und neue Nutzer nach Wunsch anlegen.
-    - Standardnutzer: `admin` / `password`
-2. Nutzereinstellungen nach persönlichen Vorstellungen einstellen.
-2. Aufgaben und Termine hinzufügen, verwalten und nach Outlook exportieren.
-3. Arbeitszeiten erfassen und am Monatsende für die Lohnbuchhaltung mithilfe von Excel ausdrucken.
+1. Log in with the default user and create new users as needed.
+    - Default user: `admin` / `password`
+2. Adjust user settings according to personal preferences.
+2. Add, manage, and export tasks and appointments to Outlook.
+3. Track working times and print them at the end of the month for payroll using Excel.
 
-## Sicherheit und Datenschutz
+## Security and Data Protection
 
-- Alle Daten werden lokal gespeichert.
-- Regelmäßige Backups der Datenbanken sind möglich.
-- Keine automatische Cloud-Synchronisation.
+- All data is stored locally.
+- Regular backups of the databases are possible.
+- No automatic cloud synchronization.
 
-## Support und Hilfe
+## Support and Help
 
-- Integrierter Hilfebereich in der Anwendung
+- Integrated help section in the application
 
-## Weiterentwicklung
+## Further Development
 
-- **Hinzufügen der Funktionalität von Terminen in der Anwendung**
-- Möglichkeit der Auslagerung der Datenbanken auf geteilten Speicher
-- Vergrößerung des Umfangs von Aufgaben und Terminen durch Prioritätsstufen, Kategorien, etc.
-- Integration von weiteren Office 365-Funktionen
+- **Adding appointment functionality within the application**
+- Option to outsource databases to shared storage
+- Expansion of tasks and appointments with priority levels, categories, etc.
+- Integration of additional Office 365 features
+
+---
+
+This project was created as part of the course **C#** at the **University of Applied Sciences Mittweida**. Therefore, this project is not intended for real-world use and is primarily for educational purposes.
