@@ -172,7 +172,7 @@ namespace OfficeFlow
         /// was successfully deleted;  otherwise, <see langword="0"/> if no time entries were deleted.</returns>
         public static int DeleteAllTimes(int userId)
         {
-            int result = 0;
+            int result = 1;
             // Holen aller Zeiterfassungen für den Nutzer
             List<Time> times = GetAllTimes(userId);
             foreach (Time time in times)

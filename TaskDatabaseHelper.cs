@@ -186,7 +186,7 @@ namespace OfficeFlow
         /// successfully deleted; otherwise, <see langword="0"/> if any task deletion failed.</returns>
         public static int DeleteAllTasks(int userId)
         {
-            int result = 0;
+            int result = 1;
             // Holen aller Aufgaben für den Nutzer
             List<Task> tasks = GetAllTasks(userId);
             foreach (Task task in tasks)

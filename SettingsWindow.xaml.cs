@@ -33,12 +33,25 @@ namespace OfficeFlow
             InitializeComponent();
             CurrentUser = user;
 
+            // Aktualisieren der Einstellungen des Nutzers
+            SetSettings();
+        }
+
+        /// <summary>
+        /// Sets the settings for the current user based on the database values.
+        /// </summary>
+        private void SetSettings()
+        {
             // Setzen der Checkboxen für die Einstellungen des Nutzers
             ExportTasksToOutlookCheckBox.IsChecked = SettingsDatabaseHelper.GetExportTasksToOutlook(CurrentUser.Id);
             // Setzen des Buttons zum Löschen exportierter Aufgaben
             DeleteExportedTasksButton.IsEnabled = !ExportTasksToOutlookCheckBox.IsChecked.Value;
             // Setzen der Checkbox für die automatische Zeiterfassung
             AutomaticTimeTrackingCheckBox.IsChecked = SettingsDatabaseHelper.GetAutomaticTimeTracking(CurrentUser.Id);
+
+            // Löschen der Einstellungen für Termine
+            ExportAppointmentsToOutlookCheckBox.IsChecked = false;
+            DeleteExportedAppointmentsButton.IsEnabled = true;
         }
 
         private void ResetSettingsButton_Click(object sender, RoutedEventArgs e)
@@ -66,6 +79,9 @@ namespace OfficeFlow
                 // Fehler beim Löschen der Nutzereinstellungen
                 MessageBox.Show("Fehler beim Zurücksetzen der Nutzereinstellungen! Bitte versuchen Sie es noch einmal!", "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+
+            // Aktualisieren der Einstellungen des Nutzers
+            SetSettings();
         }
 
         private void DeleteExportedTasksButton_Click(object sender, RoutedEventArgs e)
